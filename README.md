@@ -7,7 +7,7 @@ Group members:
 
 ## Topic: Simulation of the collective behaviour of flocking sheep to a herding dog
 For our project on Simulation of a collective behaviour of flocking sheep to a herding dog, we plan to implement the method described in the paper [Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)](https://doi.org/10.1038/s42003-024-07245-8) and expand on the implementation.
-The paper provides a linked GitHub repository with a MATLAB implementation of the model. We will reimplement this method in Python and add visualization to better understand and reproduce the collective dynamics between the sheep and the herding dog. After successfully replicating the results, we plan to extend the project by experimenting with different herding strategies and flocking behaviours, as well as introducing obstacles that the herding dog must avoid while guiding the flock toward the target.
+The paper provides a linked GitHub repository with a MATLAB implementation of the model. We will reimplement this method in Python and add visualization to better understand and reproduce the collective dynamics between the sheep and the herding dog. After successfully replicating the results, we will expand the model by testing alternative herding strategies, including driving (pushing the flock from behind), collecting (gathering dispersed sheep before driving), and flanking (using lateral motion to guide direction). We will also introduce environmental obstacles to study how spatial constraints affect group cohesion and efficiency.
 
 ## Milestones:
 - First report - 16.11.2025
