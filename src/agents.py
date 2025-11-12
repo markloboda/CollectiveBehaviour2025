@@ -7,6 +7,9 @@ class Agent:
         self.y = y
         self.vx = 0.0
         self.vy = 0.0
+        #params
+        self.speed_const = 1.0
+
 
     @property
     def speed(self):
@@ -20,10 +23,10 @@ class Agent:
     def direction(self):
         return AgentUtils.direction(self.vx, self.vy)
 
-    def move(self, dt: float):
-      (move_x, move_y) = (self.speed[0] * dt, self.speed[1] * dt)
-      (dir_x, dir_y)   = self.direction[0]
-      (self.x, self.y) = (self.x + move_x * dir_x, self.y + move_y * dir_y)
+    # def move(self, dt: float):
+    #   (move_x, move_y) = (self.speed[0] * dt, self.speed[1] * dt)
+    #   (dir_x, dir_y)   = self.direction[0]
+    #   (self.x, self.y) = (self.x + move_x * dir_x, self.y + move_y * dir_y)
 
     def viewing_angle_to(self, other: 'Agent') -> float:
       theta_ij = math.atan2(other.y - self.y, other.x - self.x)
@@ -87,9 +90,9 @@ class Sheep(Agent):
           sum_dy += dy / dist
       self.social_repulsion = (-wRep * sum_dx / nRep, -wRep * sum_dy / nRep)
 
-  def update_repulsion(self, dogPos, wDog, dDog): #dDog = R_D in paper
-    dx = self.x - dogPos[0]
-    dy = self.y - dogPos[1]
+  def update_repulsion(self, dog, wDog, dDog): #dDog = R_D in paper
+    dx = self.x - dog.x
+    dy = self.y - dog.y
     dist = math.hypot(dx, dy)
     if dist < dDog and dist > 0:
       self.dog_repulsion = (wDog * dx / dist, wDog * dy / dist)
@@ -99,10 +102,34 @@ class Sheep(Agent):
   def update_noise(self):
     self.noise = (random.random(), random.random())
 
-  def move(self, dt):
-    # update position
-    # update velocity
-    pass
+
+  def move(self, dt, alpha=0.5, epsilon=0.1):
+    # Previous direction unit vector
+    dir_x, dir_y = self.direction
+
+    # Weighted sum of vectors
+    ux = alpha * dir_x \
+         + self.social_attraction[0] + self.social_alignment[0] + self.social_repulsion[0] \
+         + self.dog_repulsion[0] \
+         + epsilon * (self.noise[0] - 0.5) * 2
+
+    uy = alpha * dir_y \
+         + self.social_attraction[1] + self.social_alignment[1] + self.social_repulsion[1] \
+         + self.dog_repulsion[1] \
+         + epsilon * (self.noise[1] - 0.5) * 2
+
+    # Normalize to get new heading
+    norm = math.hypot(ux, uy)
+    if norm > 0:
+      self.vx = ux / norm * self.speed_const
+      self.vy = uy / norm * self.speed_const
+    else:
+      self.vx = 0.0
+      self.vy = 0.0
+
+    # Move sheep
+    self.x += self.vx * dt
+    self.y += self.vy * dt
 
 class Dog(Agent):
     pass

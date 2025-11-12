@@ -1,6 +1,7 @@
 import random
 import time
 import math
+import os
 from agents import Sheep, Dog
 
 class Simulation:
@@ -23,24 +24,64 @@ class Simulation:
     self.w_dog = 1.0
     self.d_dog = 0.5
 
+  def run(self, steps=100, dt=1.0, delay=0.1):
+    print("Starting simulation...")
+    for step in range(steps):
+      self.update(dt)
+      self.draw()
+      print(f"Step {step + 1}")
+      time.sleep(delay)
+    print("Simulation finished.")
+
   def update(self, dt):
     for sheep in self.sheep:
       neighbors = [s for s in self.sheep if s != sheep]
       sheep.update_social(neighbors, wAtt=1.0, wAli=0.5, wRep=1.0, nAtt=3, nAli=2, dRep=1.5)
-      sheep.update_repulsion()
+      sheep.update_repulsion(self.shepherds[0], self.w_dog, self.d_dog)
       sheep.update_noise()
       sheep.move(dt)
 
     for shepherd in self.shepherds:
       pass
 
-  def run(self, steps=100, dt=1.0, delay=0.1):
-    print("Starting simulation...")
-    for step in range(steps):
-      self.update(dt)
-      print(f"Step {step + 1}")
-      time.sleep(delay)
-    print("Simulation finished.")
+  def draw(self, width=40, height=20):
+    """Draw sheep (blue) and dogs (red) as square-ish blocks in terminal."""
+    # ANSI codes for colors
+    BLUE = '\033[44m'   # blue background
+    RED = '\033[41m'    # red background
+    RESET = '\033[0m'   # reset color
+
+    # Clear terminal
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+    # Create empty grid
+    grid = [[' ' for _ in range(width)] for _ in range(height)]
+    color_grid = [[RESET for _ in range(width)] for _ in range(height)]
+
+    # Helper to convert world coordinates to grid indices
+    def to_grid(x, y):
+      gx = int(x / self.field_size[0] * (width - 1))
+      gy = int(y / self.field_size[1] * (height - 1))
+      gx = max(0, min(width - 1, gx))
+      gy = max(0, min(height - 1, gy))
+      return gx, gy
+
+    # Draw sheep (blue)
+    for s in self.sheep:
+      gx, gy = to_grid(s.x, s.y)
+      grid[gy][gx] = '  '   # double-width
+      color_grid[gy][gx] = BLUE
+
+    # Draw dogs (red, overwrite if overlapping)
+    for d in self.shepherds:
+      gx, gy = to_grid(d.x, d.y)
+      grid[gy][gx] = '  '
+      color_grid[gy][gx] = RED
+
+    # Print grid row by row (top row = y=0)
+    for row_idx in reversed(range(height)):
+      row = ''.join(f"{color_grid[row_idx][col]}{grid[row_idx][col]}{RESET}" for col in range(width))
+      print(row)
 
   # --- Utility Methods ---
   def calculate_barycenter(self):
