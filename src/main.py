@@ -7,7 +7,10 @@ def main():
         field_size=(100, 100)
     )
 
-    sim.run()
+    sim.run(
+        steps=100,
+        dt = 1.0,  # seconds
+    )
 
 if __name__ == "__main__":
     main()
