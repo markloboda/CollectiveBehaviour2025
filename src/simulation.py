@@ -3,9 +3,13 @@ import time
 import math
 import os
 from agents import Sheep, Dog
+from src.simulation_state import SimulationState
+
 
 class Simulation:
-  def __init__(self, num_sheep, num_shepherds, field_size):
+  def __init__(self, num_sheep, num_shepherds, field_size, seed=42):
+    random.seed(seed)
+
     self.field_size = field_size
     self.sheep = [Sheep(random.uniform(0, field_size[0]), random.uniform(0, field_size[1])) for _ in range(num_sheep)]
     self.shepherds = [Dog(random.uniform(0, field_size[0]), random.uniform(0, field_size[1])) for _ in range(num_shepherds)]
@@ -32,6 +36,23 @@ class Simulation:
       print(f"Step {step + 1}")
       time.sleep(delay)
     print("Simulation finished.")
+
+  def steps(self, steps=100, dt=1.0):
+      accum = 0.0
+      for step in range(steps):
+          state = SimulationState(
+              tick=step,
+              time=accum,
+
+              bounds=self.field_size,
+
+              sheep=self.sheep,
+              dogs=self.shepherds
+          )
+          accum += dt
+          self.update(dt)
+
+          yield state
 
   def update(self, dt):
     for sheep in self.sheep:
