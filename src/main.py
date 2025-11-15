@@ -1,5 +1,5 @@
 from simulation import Simulation
-from src.visulizer import SimulationVisualizer, SimulationRecorder
+from visulizer import SimulationVisualizer, SimulationRecorder
 
 
 def main():

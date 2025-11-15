@@ -8,7 +8,7 @@ from typing import Tuple, Generator, Iterator
 
 from PIL import Image
 
-from src.simulation_state import SimulationState
+from simulation_state import SimulationState
 
 BACKGROUND_COLOR = (200, 200, 200)
 GRID_COLOR = (160, 160, 160)

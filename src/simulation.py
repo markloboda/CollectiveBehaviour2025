@@ -3,7 +3,7 @@ import time
 import math
 import os
 from agents import Sheep, Dog
-from src.simulation_state import SimulationState
+from simulation_state import SimulationState
 
 
 class Simulation:
