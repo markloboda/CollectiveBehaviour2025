@@ -11,7 +11,7 @@ def main():
     field_size=(WORLD_WIDTH, WORLD_HEIGHT),
   )
 
-  sim_steps = sim.steps()
+  sim_steps = sim.steps(steps=1000)
 
   #print(list(sim_steps()))
 
