@@ -17,24 +17,27 @@ class Simulation:
 
     self.neighbors_num = num_sheep # number of neighbors for social interaction between sheep
     # social attraction
-    self.w_att = 1.5 # positiove weight on interaction
-    self.n_att = 5   # number of nearest neighbors used (note: that n_att <= self.neighbors_num)
-    self.w_ali = 1.3 # positiove weight on interaction
-    self.n_ali = 1   # number of randomly chosen from n_att nearest neighbours (note: that n_ali <= n_att)
+    self.w_att = 1.5  # weight on interaction (c)
+    self.n_att = 8  # number of nearest neighbours used (k_atr)
+    self.w_ali = 1.3  # weight on interaction (alg_str)
+    self.n_ali = 2  # number of randomly chosen from n_att nearest neighbours (k_alg)
+
     # social repulsion
-    self.w_rep = 2.0 # positiove weight on interaction
-    self.d_rep = 2.0 # distance for social repulsion
+    self.w_rep = 2.0  # weight on interaction (rho_a)
+    self.d_rep = 2.0  # distance for social repulsion (rad_rep_s)
+
     # dog repulsion
-    self.w_dog = 1.0
-    self.d_dog = 12.0
+    self.inertia_dog = 0.5  # inertia of dog direction (h)
+    self.w_dog = 1.0  # weight on interaction (rho_d)
+    self.d_dog = 3.0  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
 
     # “global” model parameters used in dog logic
-    self.v_dog = 1.5
-    self.e = 0.3  # noise strength for dog
+    self.v_dog = 1.5 # dog speed (v_dog)
+    self.e = 0.3  # noise strength for dog (e)
     # group cohesion threshold f_n and collecting/drive offsets pc, pd
-    self.f_n = self.d_rep * (num_sheep ** (2.0 / 3.0))
-    self.pc = self.d_rep
-    self.pd = self.d_rep * math.sqrt(num_sheep)
+    self.f_n = self.d_rep * (num_sheep ** (2.0 / 3.0))  # cohesion threshold (f_n)
+    self.pc = self.d_rep  # collecting offset (pc)
+    self.pd = self.d_rep  # driving offset (pd)
 
   def run(self, steps: int = 100, dt: float = 1.0, delay: float = 0.1):
     print("Starting simulation...")
