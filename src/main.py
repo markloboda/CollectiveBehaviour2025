@@ -1,4 +1,5 @@
 from simulation import Simulation
+from src.plotter import plot_all_metrics
 from visulizer import SimulationVisualizer, SimulationRecorder
 
 
@@ -11,12 +12,15 @@ def main():
     field_size=(WORLD_WIDTH, WORLD_HEIGHT),
   )
 
-  sim_steps = sim.steps(steps=1000)
+  sim_steps = sim.steps(steps=500)
 
   #print(list(sim_steps()))
 
-  player = SimulationVisualizer()
-  player.run(sim_steps)
+  plot_all_metrics(list(sim_steps))
+
+
+  #player = SimulationVisualizer()
+  #player.run(sim_steps)
 
   #recorder = SimulationRecorder(WORLD_WIDTH, WORLD_HEIGHT)
   #recorder.record(sim_steps, "test.gif")

@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -14,4 +15,14 @@ class SimulationState:
   sheep: List[Sheep]
   dogs: List[Dog]
 
-  # Barycenter, cohesion, polarization, barycenter_velocity, ...?
+  # metrics:
+  barycenter: Tuple[float, float] | None
+  velocity: Tuple[float, float] | None
+  direction: Tuple[float, float] | None
+  perp_direction: Tuple[float, float] | None
+  cohesion: float | None
+  polarization: float | None
+  elongation: float | None
+  dog_offsets: Tuple[float, float] | None
+  dog_rear_distance: Tuple[float, float] | None
+
