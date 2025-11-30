@@ -143,59 +143,80 @@ class Sheep(Agent):
 class Dog(Agent):
   def __init__(self, x: float, y: float):
     super().__init__(x, y)
-    # dog is faster than sheep in the model
-    self.speed_const = 1.5
 
-  def move_herding(self,
-          sheep: List[Sheep],
-          dt: float,
-          rad_rep_s: float,
-          f_n: float,
-          pc: float,
-          pd: float,
-          noise_strength: float,
-  ) -> None:
+  def update(self,
+             sheep: List[Sheep],
+             dt: float,
+             speed_dog: float,     # v_dog in MATLAB
+             rad_rep_s: float,     # rad_rep_s in MATLAB
+             f_n: float,
+             pc: float,
+             pd: float,
+             noise_strength: float # e in MATLAB
+             ) -> None:
 
     if not sheep:
       return
 
+    # distance from dog to each sheep (pos_s_t_1 - pos_d_t_1)
     dists = []
     for s in sheep:
       dx = s.x - self.x
       dy = s.y - self.y
-      dists.append((math.hypot(dx, dy), dx, dy, s))
+      d = math.hypot(dx, dy)
+      dists.append(d)
 
-    min_dist, _, _, _ = min(dists, key=lambda t: t[0])
+    min_dist = min(dists)
 
-    # If dog is very close to any sheep, slow down massively (force_slow)
-    if min_dist <= rad_rep_s:
-      self.x += self.vx * 0.05 * dt
-      self.y += self.vy * 0.05 * dt
+    # force-slow branch: if any sheep is within rad_rep_s
+    # if min(dist_rds) < rad_rep_s
+    if min_dist < rad_rep_s:
+      # use previous velocity direction (vel_d_t_1)
+      norm_v = math.hypot(self.vx, self.vy)
+      if norm_v > 0.0:
+        ux = self.vx / norm_v
+        uy = self.vy / norm_v
+        slow_step = 0.05  #  vel_d_t_1 (vel_d_t_1 is unit vector in MATLAB)
+        self.vx = slow_step * ux
+        self.vy = slow_step * uy
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+      # if norm_v == 0, do nothing this step
       return
 
-    # --- flock barycenter and spread ---
+    # group centre (grp_centre)
     avg_x = sum(s.x for s in sheep) / len(sheep)
     avg_y = sum(s.y for s in sheep) / len(sheep)
 
-    # vectors from barycenter to sheep
+    # vectors from group centre to sheep (r_gcm_i) and their distances (dist_gcm_i)
     r_gcm = []
-    max_dist = -1.0
-    max_idx = 0
-    for idx, s in enumerate(sheep):
+    dist_gcm = []
+    for s in sheep:
       rx = s.x - avg_x
       ry = s.y - avg_y
       d = math.hypot(rx, ry)
-      r_gcm.append((rx, ry, d))
-      if d > max_dist:
-        max_dist = d
-        max_idx = idx
+      r_gcm.append((rx, ry))
+      dist_gcm.append(d)
 
-    # collect or drive ?
-    if max_dist >= f_n:
-      # collect: go behind the farthest sheep relative to group centre
-      rx, ry, d_far = r_gcm[max_idx]
+    # farthest sheep from group centre
+    max_dist = max(dist_gcm)
+    max_idx = dist_gcm.index(max_dist)
+
+    # collect or drive?
+    if max_dist > f_n:
+      # COLLECT: go behind farthest sheep relative to group centre
+      rx, ry = r_gcm[max_idx]
+      d_far = dist_gcm[max_idx]
+
+      # d_far should be > 0 here if we are in collect regime like MATLAB
       if d_far == 0.0:
-        target_x, target_y = sheep[max_idx].x, sheep[max_idx].y
+        # all sheep at group centre; fall back to driving
+        grp_norm = math.hypot(avg_x, avg_y)
+        if grp_norm == 0.0:
+          return
+        d_behind = grp_norm + pd
+        target_x = d_behind * (avg_x / grp_norm)
+        target_y = d_behind * (avg_y / grp_norm)
       else:
         d_behind = d_far + pc
         ux = rx / d_far
@@ -203,19 +224,18 @@ class Dog(Agent):
         rcx = avg_x + d_behind * ux
         rcy = avg_y + d_behind * uy
         target_x, target_y = rcx, rcy
+
     else:
-      # drive: go behind the whole group in its direction of motion (approx. from origin) :contentReference[oaicite:5]{index=5}
+      # DRIVE: go behind group centre relative to origin
       grp_norm = math.hypot(avg_x, avg_y)
       if grp_norm == 0.0:
-        # degenerate; don't move
         return
       d_behind = grp_norm + pd
-      ux = avg_x / grp_norm
-      uy = avg_y / grp_norm
-      target_x = d_behind * ux
-      target_y = d_behind * uy
+      r_drive_x = d_behind * (avg_x / grp_norm)
+      r_drive_y = d_behind * (avg_y / grp_norm)
+      target_x, target_y = r_drive_x, r_drive_y
 
-    # move dog towards target with angular noise
+    # direction from dog to target (rdc / r_drive_orient) ---
     dir_x = target_x - self.x
     dir_y = target_y - self.y
     norm = math.hypot(dir_x, dir_y)
@@ -238,8 +258,8 @@ class Dog(Agent):
     ux /= norm2
     uy /= norm2
 
-    self.vx = ux * self.speed_const
-    self.vy = uy * self.speed_const
+    self.vx = ux * speed_dog
+    self.vy = uy * speed_dog
 
     self.x += self.vx * dt
     self.y += self.vy * dt

@@ -81,21 +81,24 @@ class Simulation:
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
+      # update dog (using "previous" sheep state)
+      if self.shepherds:
+        for dog in self.shepherds:
+          dog.update(
+            self.sheep,
+            dt=dt,
+            speed_dog=self.v_dog,
+            rad_rep_s=self.d_rep,
+            f_n=self.f_n,
+            pc=self.pc,
+            pd=self.pd,
+            noise_strength=self.e,
+          )
+
       sheep.update_noise()
       sheep.move(dt)
 
-    # --- update dog(s) ---
-    if self.shepherds:
-      for dog in self.shepherds:
-        dog.move_herding(
-          self.sheep,
-          dt=dt,
-          rad_rep_s=self.d_rep,
-          f_n=self.f_n,
-          pc=self.pc,
-          pd=self.pd,
-          noise_strength=self.e,
-        )
+
 
   def draw(self, width=40, height=20):
     """Draw sheep (blue) and dogs (red) as square-ish blocks in terminal."""
