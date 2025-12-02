@@ -33,6 +33,8 @@ class Simulation:
     self.w_dog = 1.0  # weight on interaction (rho_d)
     self.d_dog = 3.0  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
 
+    self.goal_pos = (50, 50)
+
     # “global” model parameters used in dog logic
     self.v_dog = 1.5  # dog speed (v_dog)
     self.e = 0.3  # noise strength for dog (e)
@@ -119,6 +121,8 @@ class Simulation:
             pc=self.pc,
             pd=self.pd,
             noise_strength=self.e,
+            goal_x=self.goal_pos[0],
+            goal_y=self.goal_pos[1],
           )
 
       sheep.update_noise()

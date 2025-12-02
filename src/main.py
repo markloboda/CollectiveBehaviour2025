@@ -12,15 +12,16 @@ def main():
     field_size=(WORLD_WIDTH, WORLD_HEIGHT),
   )
 
-  sim_steps = sim.steps(steps=500)
+  sim_steps = sim.steps(steps=50000)
 
   #print(list(sim_steps()))
 
-  plot_all_metrics(list(sim_steps))
+  #plot_all_metrics(list(sim_steps))
 
 
-  #player = SimulationVisualizer()
-  #player.run(sim_steps)
+  # CTRL + LMB to set goal pos
+  player = SimulationVisualizer(sim)
+  player.run(sim_steps)
 
   #recorder = SimulationRecorder(WORLD_WIDTH, WORLD_HEIGHT)
   #recorder.record(sim_steps, "test.gif")

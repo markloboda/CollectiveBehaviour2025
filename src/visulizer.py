@@ -42,10 +42,12 @@ class Camera:
 class SimulationVisualizer:
   CELL_SIZE = 10
 
-  def __init__(self, world_width: int = 100, world_height: int = 100, headless=False):
+  def __init__(self, sim = None, world_width: int = 100, world_height: int = 100, headless=False):
     pygame.init()
     self.world_width = world_width
     self.world_height = world_height
+
+    self.sim = sim
 
     self.screen_width = 1200
     self.screen_height = 800
@@ -84,6 +86,8 @@ class SimulationVisualizer:
     self.dragging = False
     self.last_mouse_pos = None
 
+    self.goal_pos = (50, 50)
+
     self.font = pygame.font.Font(None, 36)
 
   def stop(self):
@@ -98,6 +102,11 @@ class SimulationVisualizer:
         if event.button == pygame.BUTTON_LEFT:
           self.dragging = True
           self.last_mouse_pos = event.pos
+
+          if pygame.key.get_mods() & pygame.KMOD_CTRL:
+            self.goal_pos = self.camera.screen_to_world(event.pos, (self.screen_width, self.screen_height))
+            if self.sim:
+              self.sim.goal_pos = self.goal_pos
         elif event.button == pygame.BUTTON_WHEELUP:
           self.camera.zoom *= 1.1
         elif event.button == pygame.BUTTON_WHEELDOWN:
@@ -160,6 +169,8 @@ class SimulationVisualizer:
   def draw_frame(self, state: SimulationState):
     self.screen.fill(BACKGROUND_COLOR)
     self.draw_grid()
+
+    self.draw_cell(self.goal_pos, FOOD_COLOR)
 
     # Draw entities
     for prey in state.sheep:
