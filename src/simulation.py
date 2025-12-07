@@ -1,3 +1,4 @@
+import dataclasses
 import random
 import time
 import math
@@ -7,41 +8,50 @@ from agents import *
 from simulation_state import SimulationState
 
 
+@dataclasses.dataclass
+class SimulationConfig:
+  field_size: Tuple[int, int]
+
+  num_sheep: int
+  num_shepherds: int
+
+  neighbors_num: int  # number of neighbors for social interaction between sheep (k_atr)
+  # social attraction
+  w_att: float  # weight on interaction (c)
+  n_att: int  # number of nearest neighbours used (k_atr)
+  w_ali: float  # weight on interaction (alg_str)
+  n_ali: int  # number of randomly chosen from n_att nearest neighbours (k_alg)
+
+  # social repulsion
+  w_rep: float  # weight on interaction (rho_a)
+  d_rep: float  # distance for social repulsion (rad_rep_s)
+
+  # dog repulsion
+  inertia_dog: float  # inertia of dog direction (h)
+  w_dog: float  # weight on interaction (rho_d)
+  d_dog: float  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
+
+  goal_pos: Tuple[float, float] | None
+
+  # “global” model parameters used in dog logic
+  v_dog: float  # dog speed (v_dog)
+  e: float  # noise strength for dog (e)
+  # group cohesion threshold f_n and collecting/drive offsets pc, pd
+  f_n: float  # cohesion threshold (f_n)
+  pc: float  # collecting offset (pc)
+  pd: float  # driving offset (pd)
+
+
+
 class Simulation:
-  def __init__(self, num_sheep: int, num_shepherds: int, field_size, collect_metrics=True, seed: int = 42):
+  def __init__(self, simCfg: SimulationConfig, collect_metrics=True, seed: int = 42):
     self.collect_metrics = collect_metrics
     random.seed(seed)
 
-    self.field_size = field_size
-    self.sheep = [Sheep(random.uniform(0, field_size[0]), random.uniform(0, field_size[1])) for _ in range(num_sheep)]
-    self.shepherds = [Dog(random.uniform(0, field_size[0]), random.uniform(0, field_size[1])) for _ in
-                      range(num_shepherds)]
-
-    self.neighbors_num = num_sheep  # number of neighbors for social interaction between sheep
-    # social attraction
-    self.w_att = 1.5  # weight on interaction (c)
-    self.n_att = 8  # number of nearest neighbours used (k_atr)
-    self.w_ali = 1.3  # weight on interaction (alg_str)
-    self.n_ali = 2  # number of randomly chosen from n_att nearest neighbours (k_alg)
-
-    # social repulsion
-    self.w_rep = 2.0  # weight on interaction (rho_a)
-    self.d_rep = 2.0  # distance for social repulsion (rad_rep_s)
-
-    # dog repulsion
-    self.inertia_dog = 0.5  # inertia of dog direction (h)
-    self.w_dog = 1.0  # weight on interaction (rho_d)
-    self.d_dog = 3.0  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
-
-    self.goal_pos = (50, 50)
-
-    # “global” model parameters used in dog logic
-    self.v_dog = 1.5  # dog speed (v_dog)
-    self.e = 0.3  # noise strength for dog (e)
-    # group cohesion threshold f_n and collecting/drive offsets pc, pd
-    self.f_n = self.d_rep * (num_sheep ** (2.0 / 3.0))  # cohesion threshold (f_n)
-    self.pc = self.d_rep  # collecting offset (pc)
-    self.pd = self.d_rep  # driving offset (pd)
+    self.cfg = simCfg
+    self.sheep = [Sheep(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in range(simCfg.num_sheep)]
+    self.shepherds = [Dog(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in
+                      range(simCfg.num_shepherds)]
 
   def run(self, steps: int = 100, dt: float = 1.0, delay: float = 0.1):
     print("Starting simulation...")
@@ -59,7 +69,7 @@ class Simulation:
         tick=step,
         time=accum,
 
-        bounds=self.field_size,
+        bounds=self.cfg.field_size,
 
         sheep=self.sheep,
         dogs=self.shepherds,
@@ -96,16 +106,16 @@ class Simulation:
 
       sheep.update_social(
         neighbors,
-        wAtt=self.w_att,
-        wAli=self.w_ali,
-        wRep=self.w_rep,
-        nAtt=self.n_att,
-        nAli=self.n_ali,
-        dRep=self.d_rep,
+        wAtt=self.cfg.w_att,
+        wAli=self.cfg.w_ali,
+        wRep=self.cfg.w_rep,
+        nAtt=self.cfg.n_att,
+        nAli=self.cfg.n_ali,
+        dRep=self.cfg.d_rep,
       )
       # only use first dog for now
       if self.shepherds:
-        sheep.update_repulsion(self.shepherds[0], self.w_dog, self.d_dog)
+        sheep.update_repulsion(self.shepherds[0], self.cfg.w_dog, self.cfg.d_dog)
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
@@ -115,14 +125,14 @@ class Simulation:
           dog.update(
             self.sheep,
             dt=dt,
-            speed_dog=self.v_dog,
-            rad_rep_s=self.d_rep,
-            f_n=self.f_n,
-            pc=self.pc,
-            pd=self.pd,
-            noise_strength=self.e,
-            goal_x=self.goal_pos[0],
-            goal_y=self.goal_pos[1],
+            speed_dog=self.cfg.v_dog,
+            rad_rep_s=self.cfg.d_rep,
+            f_n=self.cfg.f_n,
+            pc=self.cfg.pc,
+            pd=self.cfg.pd,
+            noise_strength=self.cfg.e,
+            #goal_x=self.cfg.goal_pos[0],
+            #goal_y=self.cfg.goal_pos[1],
           )
 
       sheep.update_noise()
@@ -144,8 +154,8 @@ class Simulation:
 
     # Helper to convert world coordinates to grid indices
     def to_grid(x, y):
-      gx = int(x / self.field_size[0] * (width - 1))
-      gy = int(y / self.field_size[1] * (height - 1))
+      gx = int(x / self.cfg.field_size[0] * (width - 1))
+      gy = int(y / self.cfg.field_size[1] * (height - 1))
       gx = max(0, min(width - 1, gx))
       gy = max(0, min(height - 1, gy))
       return gx, gy
@@ -203,14 +213,19 @@ class Simulation:
     return (-dy, dx)
 
   def calculate_group_cohesion(self, barycenter=None) -> float:
+    """Average distance of sheep to flock barycenter."""
     if not self.sheep:
       raise ValueError("Cannot calculate group cohesion: no sheep in simulation")
     if barycenter is None:
       barycenter = self.calculate_barycenter()
-    avg_x, avg_y = barycenter
-    avg_dx = sum(a.x - avg_x for a in self.sheep) / len(self.sheep)
-    avg_dy = sum(a.y - avg_y for a in self.sheep) / len(self.sheep)
-    return math.hypot(avg_dx, avg_dy)
+    bx, by = barycenter
+
+    n = len(self.sheep)
+    total_dist = 0.0
+    for a in self.sheep:
+      total_dist += math.hypot(a.x - bx, a.y - by)
+
+    return total_dist / n
 
   def calculate_group_polarization(self) -> float:
     if not self.sheep:
@@ -218,6 +233,7 @@ class Simulation:
     avg_dx = sum(a.direction[0] for a in self.sheep) / len(self.sheep)
     avg_dy = sum(a.direction[1] for a in self.sheep) / len(self.sheep)
     return math.hypot(avg_dx, avg_dy)
+
 
   def calculate_group_elongation(self) -> float:
     """

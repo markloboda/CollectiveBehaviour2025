@@ -152,15 +152,14 @@ class Dog(Agent):
              f_n: float,
              pc: float,
              pd: float,
-             noise_strength: float, # e in MATLAB
-             goal_x: float = 50,
-             goal_y: float = 50,
+             noise_strength: float # e in MATLAB
              ) -> None:
 
     if not sheep:
       return
-    # distance from dog to each sheep (dist_rds)
-    dists: List[float] = []
+
+    # distance from dog to each sheep (pos_s_t_1 - pos_d_t_1)
+    dists = []
     for s in sheep:
       dx = s.x - self.x
       dy = s.y - self.y
@@ -169,17 +168,20 @@ class Dog(Agent):
 
     min_dist = min(dists)
 
-    # force-slow branch: if any sheep within rad_rep_s
+    # force-slow branch: if any sheep is within rad_rep_s
+    # if min(dist_rds) < rad_rep_s
     if min_dist < rad_rep_s:
+      # use previous velocity direction (vel_d_t_1)
       norm_v = math.hypot(self.vx, self.vy)
       if norm_v > 0.0:
         ux = self.vx / norm_v
         uy = self.vy / norm_v
-        slow_step = 0.05          # matches 0.05 * vel_d_t_1 in MATLAB (per step)
+        slow_step = 0.05  #  vel_d_t_1 (vel_d_t_1 is unit vector in MATLAB)
         self.vx = slow_step * ux
         self.vy = slow_step * uy
         self.x += self.vx * dt
         self.y += self.vy * dt
+      # if norm_v == 0, do nothing this step
       return
 
     # group centre (grp_centre)
@@ -206,40 +208,34 @@ class Dog(Agent):
       rx, ry = r_gcm[max_idx]
       d_far = dist_gcm[max_idx]
 
-      if d_far > 0.0:
-        # rc = grp_centre + (dist_far + pc) * (r_gcm / dist_far)
+      # d_far should be > 0 here if we are in collect regime like MATLAB
+      if d_far == 0.0:
+        # all sheep at group centre; fall back to driving
+        grp_norm = math.hypot(avg_x, avg_y)
+        if grp_norm == 0.0:
+          return
+        d_behind = grp_norm + pd
+        target_x = d_behind * (avg_x / grp_norm)
+        target_y = d_behind * (avg_y / grp_norm)
+      else:
         d_behind = d_far + pc
         ux = rx / d_far
         uy = ry / d_far
-        target_x = avg_x + d_behind * ux
-        target_y = avg_y + d_behind * uy
-      else:
-        # degenerate case: farthest sheep at group centre -> fall back to drive-to-goal
-        to_goal_x = avg_x - goal_x
-        to_goal_y = avg_y - goal_y
-        g2c_norm = math.hypot(to_goal_x, to_goal_y)
-        if g2c_norm == 0.0:
-          return
-        ux = to_goal_x / g2c_norm
-        uy = to_goal_y / g2c_norm
-        d_behind = g2c_norm + pd
-        target_x = goal_x + d_behind * ux
-        target_y = goal_y + d_behind * uy
+        rcx = avg_x + d_behind * ux
+        rcy = avg_y + d_behind * uy
+        target_x, target_y = rcx, rcy
 
     else:
-      # DRIVE: go behind group centre relative to goal (goal_x, goal_y)
-      to_goal_x = avg_x - goal_x
-      to_goal_y = avg_y - goal_y
-      g2c_norm = math.hypot(to_goal_x, to_goal_y)
-      if g2c_norm == 0.0:
+      # DRIVE: go behind group centre relative to origin
+      grp_norm = math.hypot(avg_x, avg_y)
+      if grp_norm == 0.0:
         return
-      ux = to_goal_x / g2c_norm
-      uy = to_goal_y / g2c_norm
-      d_behind = g2c_norm + pd
-      target_x = goal_x + d_behind * ux
-      target_y = goal_y + d_behind * uy
+      d_behind = grp_norm + pd
+      r_drive_x = d_behind * (avg_x / grp_norm)
+      r_drive_y = d_behind * (avg_y / grp_norm)
+      target_x, target_y = r_drive_x, r_drive_y
 
-    # direction from dog to target (rdc / r_drive_orient)
+    # direction from dog to target (rdc / r_drive_orient) ---
     dir_x = target_x - self.x
     dir_y = target_y - self.y
     norm = math.hypot(dir_x, dir_y)
@@ -249,7 +245,6 @@ class Dog(Agent):
     dir_x /= norm
     dir_y /= norm
 
-    # noise (r_err)
     theta_err = random.random() * 2.0 * math.pi
     err_x = math.cos(theta_err)
     err_y = math.sin(theta_err)
@@ -263,7 +258,6 @@ class Dog(Agent):
     ux /= norm2
     uy /= norm2
 
-    # update velocity and position
     self.vx = ux * speed_dog
     self.vy = uy * speed_dog
 
