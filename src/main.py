@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from simulation import Simulation, SimulationConfig
-from src.plotter import plot_all_metrics
-from src.simulation_state import SimulationState
+from plotter import plot_all_metrics
+from simulation_state import SimulationState
 from visulizer import SimulationVisualizer, SimulationRecorder
 
 
@@ -50,25 +50,24 @@ def main():
   )
 
   sim = Simulation(cfg, seed=10)
-  #sim_steps = sim.steps(steps=310)
-  #print(list(sim_steps()))
-
-  plot_all_metrics(list(sim_steps)[1:])
+  sim_steps = sim.steps(steps=310)
+  # print(list(sim_steps()))
+  # plot_all_metrics(list(sim_steps)[1:])
 
 
   # CTRL + LMB to set goal pos
-  #player = SimulationVisualizer(sim)
-  #player.run(sim_steps)
+  player = SimulationVisualizer(sim)
+  player.run(sim_steps)
 
   #recorder = SimulationRecorder(WORLD_WIDTH, WORLD_HEIGHT)
   #recorder.record(sim_steps, "test.gif")
 
   #print(sim.steps())
 
-  #sim.run(
+  # sim.run(
   #  steps=100,
   #  dt = 1.0  # seconds
-  #)
+  # )
 
 if __name__ == "__main__":
   main()
