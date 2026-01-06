@@ -40,7 +40,7 @@ class Camera:
 
 
 class SimulationVisualizer:
-  CELL_SIZE = 10
+  CELL_SIZE = 3
 
   def __init__(self, sim = None, world_width: int = 100, world_height: int = 100, headless=False):
     pygame.init()
@@ -83,10 +83,18 @@ class SimulationVisualizer:
     self.tick_interval = 1.0  # seconds per tick
 
     self.camera = Camera()
+    # Center camera on world and fit to screen
+    self.camera.x = world_width / 2
+    self.camera.y = world_height / 2
+    ui_margin = 50
+    zoom_x = self.screen_width / world_width
+    zoom_y = (self.screen_height - ui_margin) / world_height
+    self.camera.zoom = min(zoom_x, zoom_y) * 0.95
+    
     self.dragging = False
     self.last_mouse_pos = None
 
-    self.goal_pos = (50, 50)
+    self.goal_pos = self.sim.cfg.goal_pos
 
     self.font = pygame.font.Font(None, 36)
 
@@ -142,11 +150,12 @@ class SimulationVisualizer:
 
   def draw_cell(self, pos: Tuple[float, float], color: Tuple[int, int, int]):
     screen_pos = self.camera.world_to_screen(pos, (self.screen_width, self.screen_height))
+    cell_screen_size = self.camera.zoom * self.CELL_SIZE
     rect = pygame.Rect(
       screen_pos[0],
       screen_pos[1],
-      self.CELL_SIZE,
-      self.CELL_SIZE
+      cell_screen_size,
+      cell_screen_size
     )
     pygame.draw.rect(self.screen, color, rect)
 
