@@ -90,7 +90,7 @@ class SimulationVisualizer:
     zoom_x = self.screen_width / world_width
     zoom_y = (self.screen_height - ui_margin) / world_height
     self.camera.zoom = min(zoom_x, zoom_y) * 0.95
-    
+
     self.dragging = False
     self.last_mouse_pos = None
 
@@ -113,8 +113,7 @@ class SimulationVisualizer:
 
           if pygame.key.get_mods() & pygame.KMOD_CTRL:
             self.goal_pos = self.camera.screen_to_world(event.pos, (self.screen_width, self.screen_height))
-            if self.sim:
-              self.sim.goal_pos = self.goal_pos
+            self.sim.cfg.goal_pos = self.goal_pos
         elif event.button == pygame.BUTTON_WHEELUP:
           self.camera.zoom *= 1.1
         elif event.button == pygame.BUTTON_WHEELDOWN:
@@ -163,17 +162,19 @@ class SimulationVisualizer:
     world_width = self.world_width
     world_height = self.world_height
 
-    # Draw vertical lines
-    for x in range(world_width + 1):
-      start = self.camera.world_to_screen((x, 0), (self.screen_width, self.screen_height))
-      end = self.camera.world_to_screen((x, world_height), (self.screen_width, self.screen_height))
-      pygame.draw.line(self.screen, GRID_COLOR, start, end)
+    x1, y1 = self.camera.world_to_screen((0, 0), (self.screen_width, self.screen_height))
+    x2, y2 = self.camera.world_to_screen((world_width, world_height), (self.screen_width, self.screen_height))
 
-    # Draw horizontal lines
-    for y in range(world_height + 1):
-      start = self.camera.world_to_screen((0, y), (self.screen_width, self.screen_height))
-      end = self.camera.world_to_screen((world_width, y), (self.screen_width, self.screen_height))
-      pygame.draw.line(self.screen, GRID_COLOR, start, end)
+    left = min(x1, x2)
+    top = min(y1, y2)
+    width = abs(x2 - x1)
+    height = abs(y2 - y1)
+    print(world_width, world_height)
+    world_rect = [
+      left, top, width, height
+    ]
+    pygame.draw.rect(self.screen, GRID_COLOR, pygame.Rect(world_rect), 5)
+
 
   def draw_frame(self, state: SimulationState):
     self.screen.fill(BACKGROUND_COLOR)
@@ -228,10 +229,10 @@ class SimulationVisualizer:
 class SimulationRecorder(SimulationVisualizer):
   CELL_SIZE = 10
 
-  def __init__(self, world_width: int = 100, world_height: int = 100):
+  def __init__(self, sim, world_width: int = 100, world_height: int = 100):
     os.environ['SDL_VIDEODRIVER'] = 'dummy'
 
-    super().__init__(world_width, world_height, headless=True)
+    super().__init__(sim, world_width, world_height, headless=True)
 
     margin = 40  # For text
     self.screen_width = world_width * self.CELL_SIZE + margin * 2
