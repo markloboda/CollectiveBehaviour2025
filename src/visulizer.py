@@ -12,9 +12,9 @@ from simulation_state import SimulationState
 
 BACKGROUND_COLOR = (200, 200, 200)
 GRID_COLOR = (160, 160, 160)
-PREDATOR_COLOR = (255, 0, 0)
-PREY_COLOR = (0, 0, 255)
-FOOD_COLOR = (0, 200, 50)
+SHEEP_COLOR = (255, 0, 0)
+DOG_COLOR = (0, 0, 255)
+GOAL_COLOR = (0, 200, 50)
 TEXT_COLOR = (0, 0, 0)
 
 
@@ -147,16 +147,9 @@ class SimulationVisualizer:
 
     return True
 
-  def draw_cell(self, pos: Tuple[float, float], color: Tuple[int, int, int]):
+  def draw_circle(self, pos: Tuple[float, float], color: Tuple[int, int, int], radius=1.0, width=0):
     screen_pos = self.camera.world_to_screen(pos, (self.screen_width, self.screen_height))
-    cell_screen_size = self.camera.zoom * self.CELL_SIZE
-    rect = pygame.Rect(
-      screen_pos[0],
-      screen_pos[1],
-      cell_screen_size,
-      cell_screen_size
-    )
-    pygame.draw.rect(self.screen, color, rect)
+    pygame.draw.circle(self.screen, color, screen_pos, radius * self.camera.zoom, width)
 
   def draw_grid(self):
     world_width = self.world_width
@@ -180,14 +173,14 @@ class SimulationVisualizer:
     self.screen.fill(BACKGROUND_COLOR)
     self.draw_grid()
 
-    self.draw_cell(self.goal_pos, FOOD_COLOR)
+    self.draw_circle(self.goal_pos, GOAL_COLOR, 10, 2)
 
     # Draw entities
-    for prey in state.sheep:
-      self.draw_cell((prey.x, prey.y), PREY_COLOR)
+    for sheep in state.sheep:
+      self.draw_circle((sheep.x, sheep.y), DOG_COLOR)
 
-    for predator in state.dogs:
-      self.draw_cell((predator.x, predator.y), PREDATOR_COLOR)
+    for dog in state.dogs:
+      self.draw_circle((dog.x, dog.y), SHEEP_COLOR)
 
     # Draw tick number
     tick_text = self.font.render(f"Tick: {state.tick}", True, TEXT_COLOR)
