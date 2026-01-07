@@ -118,7 +118,8 @@ class Simulation:
       )
       # only use first dog for now
       if self.shepherds:
-        sheep.update_repulsion(self.shepherds[0], self.cfg.w_dog, self.cfg.d_dog)
+        for dog in self.shepherds:
+          sheep.update_repulsion(dog, self.cfg.w_dog, self.cfg.d_dog)
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
