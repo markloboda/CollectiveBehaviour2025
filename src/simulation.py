@@ -6,7 +6,7 @@ import os
 from typing import *
 from agents import *
 from simulation_state import SimulationState
-from src.obstacle import RectObstacle
+from obstacle import RectObstacle
 
 
 @dataclasses.dataclass

@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from simulation import Simulation, SimulationConfig
 from plotter import plot_all_metrics
 from simulation_state import SimulationState
-from src.obstacle import RectObstacle
+from obstacle import RectObstacle
 from visulizer import SimulationVisualizer, SimulationRecorder
 
 
