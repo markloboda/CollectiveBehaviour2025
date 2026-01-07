@@ -48,6 +48,9 @@ class SimulationConfig:
   pc: float  # collecting offset (pc)
   pd: float  # driving offset (pd)
 
+  # sheep group splitting frequency
+  group_split_frequency: float = 0.2  # fraction of frames to update split (0.2 = every 5 frames)
+
 
 
 class Simulation:
@@ -59,6 +62,10 @@ class Simulation:
     self.sheep = [Sheep(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in range(simCfg.num_sheep)]
     self.shepherds = [Dog(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in
                       range(simCfg.num_shepherds)]
+
+    self._cached_sheep_groups = None
+    self._last_split_frame = -1
+    self._current_frame = 0
 
   def run(self, steps: int = 100, dt: float = 1.0, delay: float = 0.1):
     print("Starting simulation...")
@@ -124,12 +131,16 @@ class Simulation:
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
+    # Split sheep into groups for each dog
+    sheep_groups = self.get_sheep_groups_cached()
+
     # update dog (using "previous" sheep state)
     if self.shepherds:
-      for dog in self.shepherds:
+      for i, dog in enumerate(self.shepherds):
         dog.update_dog_repulsion(self.shepherds, self.cfg.w_dog_dog, self.cfg.d_dog_dog)
+        assigned_sheep = sheep_groups[i] if i < len(sheep_groups) else []
         dog.update(
-          self.sheep,
+          assigned_sheep,
           dt=dt,
           speed_dog=self.cfg.v_dog,
           rad_rep_s=self.cfg.d_rep,
@@ -146,7 +157,7 @@ class Simulation:
       sheep.update_obstacles(self.cfg.obstacles)
       sheep.move(dt)
 
-
+    self._current_frame += 1
 
   def draw(self, width=40, height=20):
     """Draw sheep (blue) and dogs (red) as square-ish blocks in terminal."""
@@ -353,6 +364,58 @@ class Simulation:
     avg_vy = sum(s.vy for s in self.sheep) / len(self.sheep)
     return avg_vx, avg_vy
 
+  def get_sheep_groups_cached(self) -> List[List[Sheep]]:
+    # how many frames between updates
+    frames_between_updates = max(1, int(1.0 / self.cfg.group_split_frequency))
+    # Check if we need to update the split
+    should_update = (self._cached_sheep_groups is None or (self._current_frame - self._last_split_frame) >= frames_between_updates)
+    if should_update:
+      # Update the cached groups
+      if len(self.shepherds) == 2:
+        group1, group2 = self.split_sheep_groups()
+        self._cached_sheep_groups = [group1, group2]
+      else:
+        # For single dog or more than 2 dogs, use all sheep
+        self._cached_sheep_groups = [self.sheep] * len(self.shepherds)
+
+      self._last_split_frame = self._current_frame
+    return self._cached_sheep_groups
+
+  def split_sheep_groups(self) -> Tuple[List[Sheep], List[Sheep]]:
+    dog1, dog2 = self.shepherds[0], self.shepherds[1]
+    barycenter = self.calculate_barycenter()
+    # Middle point between the two dogs
+    mid_x = (dog1.x + dog2.x) / 2
+    mid_y = (dog1.y + dog2.y) / 2
+    # Direction vector from middle point to barycenter
+    dir_x = barycenter[0] - mid_x
+    dir_y = barycenter[1] - mid_y
+    norm = math.hypot(dir_x, dir_y)
+    if norm == 0:
+      # If middle point equals barycenter, split
+      return self.sheep[:len(self.sheep)//2], self.sheep[len(self.sheep)//2:]
+
+    dir_x /= norm
+    dir_y /= norm
+    # Perpendicular vector to the splitting line
+    perp_x = -dir_y
+    perp_y = dir_x
+
+    group1 = []
+    group2 = []
+
+    for sheep in self.sheep:
+      # Vector from middle point to sheep
+      sheep_vec_x = sheep.x - mid_x
+      sheep_vec_y = sheep.y - mid_y
+      # Project onto perpendicular vector to determine which side
+      projection = sheep_vec_x * perp_x + sheep_vec_y * perp_y
+      if projection >= 0:
+        group1.append(sheep)
+      else:
+        group2.append(sheep)
+
+    return group1, group2
 
 def flock_metrics(self):
   """Computes oriented coordinates and group metrics"""
@@ -388,3 +451,5 @@ def flock_metrics(self):
     "width": width,
     "elongation": elongation,
   }
+
+

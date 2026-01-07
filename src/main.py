@@ -44,8 +44,8 @@ def main():
     d_dog=12.0,  # rad_rep_dog
 
     # dog to dog repulsion
-    w_dog_dog=0.4,
-    d_dog_dog=6.0,
+    w_dog_dog=0.1,
+    d_dog_dog=4.0,
 
     goal_pos=(50, 50),
 
@@ -57,6 +57,9 @@ def main():
     f_n=2.0 * (14 ** (2 / 3)),  # rad_rep_s * no_shp^(2/3)
     pc=2.0,  # collecting offset (pc = rad_rep_s)
     pd=2.0 * (14 ** 0.5),  # pd = rad_rep_s * sqrt(no_shp)
+
+    # sheep group splitting frequency
+    group_split_frequency=0.1,
   )
 
   sim = Simulation(cfg, seed=10)

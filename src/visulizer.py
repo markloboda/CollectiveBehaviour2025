@@ -5,6 +5,7 @@ import pygame
 import pygame_gui
 import time
 from typing import Tuple, Generator, Iterator
+import math
 
 from PIL import Image
 
@@ -66,7 +67,7 @@ class SimulationVisualizer:
 
       self.speed_slider = pygame_gui.elements.UIHorizontalSlider(
         relative_rect=pygame.Rect((120, self.screen_height - 35), (200, 30)),
-        start_value=250.0,
+        start_value=50.0,
         value_range=(1.0, 500.0),
         manager=self.ui_manager
       )
@@ -78,7 +79,7 @@ class SimulationVisualizer:
       )
 
     self.paused = False
-    self.simulation_speed = 300.0
+    self.simulation_speed = self.speed_slider.get_current_value() if not headless else 1.0
     self.last_tick_time = time.time()
     self.tick_interval = 1.0  # seconds per tick
 
@@ -167,19 +168,36 @@ class SimulationVisualizer:
     ]
     pygame.draw.rect(self.screen, GRID_COLOR, pygame.Rect(world_rect), 5)
 
-
   def draw_frame(self, state: SimulationState):
     self.screen.fill(BACKGROUND_COLOR)
     self.draw_grid()
 
     self.draw_circle(self.goal_pos, GOAL_COLOR, 10, 2)
 
-    # Draw entities
-    for sheep in state.sheep:
-      self.draw_circle((sheep.x, sheep.y), DOG_COLOR)
+    # Get sheep groups
+    if len(self.sim.shepherds) == 2 and self.sim.sheep:
+      group1, group2 = self.sim.split_sheep_groups()
+      dog1_color = (200, 0, 0)
+      dog2_color = (0, 0, 200)
 
-    for dog in state.dogs:
-      self.draw_circle((dog.x, dog.y), SHEEP_COLOR)
+      # Draw sheep with their assigned dog colors
+      for sheep in group1:
+        self.draw_circle((sheep.x, sheep.y), dog1_color)
+
+      for sheep in group2:
+        self.draw_circle((sheep.x, sheep.y), dog2_color)
+    else:
+      # Default coloring for sheep when not split
+      for sheep in state.sheep:
+        self.draw_circle((sheep.x, sheep.y), DOG_COLOR)
+
+    # Draw dogs with distinct colors
+    dog_colors = [dog1_color, dog2_color]
+    for i, dog in enumerate(state.dogs):
+      color = dog_colors[i] if i < len(dog_colors) else SHEEP_COLOR
+      self.draw_circle((dog.x, dog.y), color, radius=1.5)
+
+    self.draw_splitting_lines(self.screen)
 
     # Draw tick number
     tick_text = self.font.render(f"Tick: {state.tick}", True, TEXT_COLOR)
@@ -216,6 +234,31 @@ class SimulationVisualizer:
       clock.tick(60)
 
     pygame.quit()
+
+  def draw_splitting_lines(self, screen):
+    if len(self.sim.shepherds) != 2 or not self.sim.sheep:
+      return
+
+    dog1, dog2 = self.sim.shepherds[0], self.sim.shepherds[1]
+    barycenter = self.sim.calculate_barycenter()
+
+    # Middle point between dogs
+    mid_x = (dog1.x + dog2.x) / 2
+    mid_y = (dog1.y + dog2.y) / 2
+
+    # Convert to screen coordinates using camera
+    mid_screen = self.camera.world_to_screen((mid_x, mid_y), (self.screen_width, self.screen_height))
+    barycenter_screen = self.camera.world_to_screen(barycenter, (self.screen_width, self.screen_height))
+    dog1_screen = self.camera.world_to_screen((dog1.x, dog1.y), (self.screen_width, self.screen_height))
+    dog2_screen = self.camera.world_to_screen((dog2.x, dog2.y), (self.screen_width, self.screen_height))
+
+    # Draw line between dogs
+    pygame.draw.line(screen, (160, 160, 160), dog1_screen, dog2_screen, 1)
+    # Draw line from mid-point to barycenter
+    pygame.draw.line(screen, (160, 160, 160), mid_screen, barycenter_screen, 1)
+
+    # Draw barycenter
+    self.draw_circle(barycenter, (160, 160, 160), 5 / self.camera.zoom)
 
 
 class SimulationRecorder(SimulationVisualizer):
