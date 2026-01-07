@@ -131,8 +131,8 @@ class Simulation:
             pc=self.cfg.pc,
             pd=self.cfg.pd,
             noise_strength=self.cfg.e,
-            #goal_x=self.cfg.goal_pos[0],
-            #goal_y=self.cfg.goal_pos[1],
+            goal_x=self.cfg.goal_pos[0],
+            goal_y=self.cfg.goal_pos[1],
           )
 
       sheep.update_noise()
