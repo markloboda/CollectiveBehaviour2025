@@ -48,6 +48,7 @@ class Sheep(Agent):
     self.social_alignment  = (0.0, 0.0)
     self.social_repulsion  = (0.0, 0.0)
     self.dog_repulsion     = (0.0, 0.0)
+    self.obstacle_repulsion = (0.0, 0.0)
     self.noise             = (0.0, 0.0)
 
   def update_social(self, neighbors, wAtt, wAli, wRep, nAtt, nAli, dRep):
@@ -98,13 +99,24 @@ class Sheep(Agent):
     dx = self.x - dog.x
     dy = self.y - dog.y
     dist = math.hypot(dx, dy)
+    print(dist, dDog)
     if dist < dDog and dist > 0:
       self.dog_repulsion = (wDog * dx / dist, wDog * dy / dist)
     else:
       self.dog_repulsion = (0.0, 0.0)
 
   def update_noise(self):
-    self.noise = (random.random(), random.random())
+    angle = random.uniform(0, 2 * math.pi)
+    self.noise = (math.cos(angle), math.sin(angle))
+    self.noise = (random.uniform(0, 1), random.uniform(0, 1))
+
+  def update_obstacles(self, obstacles):
+    fx, fy = 0.0, 0.0
+    for obs in obstacles:
+      rx, ry = obs.repulsion(self.x, self.y)
+      fx += rx
+      fy += ry
+    self.obstacle_repulsion = (fx, fy)
 
 
   def move(self, dt, alpha=0.5, epsilon=0.1):

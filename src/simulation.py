@@ -6,11 +6,14 @@ import os
 from typing import *
 from agents import *
 from simulation_state import SimulationState
+from src.obstacle import RectObstacle
 
 
 @dataclasses.dataclass
 class SimulationConfig:
   field_size: Tuple[int, int]
+
+  obstacles: List[RectObstacle]
 
   num_sheep: int
   num_shepherds: int
@@ -119,24 +122,27 @@ class Simulation:
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
-      # update dog (using "previous" sheep state)
-      if self.shepherds:
-        for dog in self.shepherds:
-          dog.update(
-            self.sheep,
-            dt=dt,
-            speed_dog=self.cfg.v_dog,
-            rad_rep_s=self.cfg.d_rep,
-            f_n=self.cfg.f_n,
-            pc=self.cfg.pc,
-            pd=self.cfg.pd,
-            noise_strength=self.cfg.e,
-            goal_x=self.cfg.goal_pos[0],
-            goal_y=self.cfg.goal_pos[1],
-          )
-
+    # update dog (using "previous" sheep state)
+    if self.shepherds:
+      for dog in self.shepherds:
+        dog.update(
+          self.sheep,
+          dt=dt,
+          speed_dog=self.cfg.v_dog,
+          rad_rep_s=self.cfg.d_rep,
+          f_n=self.cfg.f_n,
+          pc=self.cfg.pc,
+          pd=self.cfg.pd,
+          noise_strength=self.cfg.e,
+          goal_x=self.cfg.goal_pos[0],
+          goal_y=self.cfg.goal_pos[1],
+        )
+    for sheep in self.sheep:
       sheep.update_noise()
+      sheep.update_obstacles(self.cfg.obstacles)
       sheep.move(dt)
+
+
 
   def draw(self, width=40, height=20):
     """Draw sheep (blue) and dogs (red) as square-ish blocks in terminal."""

@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from simulation import Simulation, SimulationConfig
 from plotter import plot_all_metrics
 from simulation_state import SimulationState
+from src.obstacle import RectObstacle
 from visulizer import SimulationVisualizer, SimulationRecorder
 
 
@@ -13,12 +14,17 @@ def main():
   WORLD_WIDTH = 100
   WORLD_HEIGHT = 100
 
+  obstacles = [
+    RectObstacle(10, 10, 40, 20, 1.0, 1.0)
+  ]
+
   # For figure 6
   cfg = SimulationConfig(
     field_size=(250, 250),
+    obstacles=obstacles,
 
     num_sheep=14,
-    num_shepherds=1,
+    num_shepherds=2,
 
     neighbors_num=10,  # K_atr
 
@@ -37,7 +43,7 @@ def main():
     w_dog=1.0,  # rho_d
     d_dog=12.0,  # rad_rep_dog
 
-    goal_pos=(50, 50),
+    goal_pos=(80, 80),
 
     # global dog-logic parameters
     v_dog=1.5,  # v_dog
@@ -50,7 +56,7 @@ def main():
   )
 
   sim = Simulation(cfg, seed=10)
-  sim_steps = sim.steps(steps=310)
+  sim_steps = sim.steps(steps=3000)
   # print(list(sim_steps()))
   # plot_all_metrics(list(sim_steps)[1:])
 
@@ -59,7 +65,7 @@ def main():
   player = SimulationVisualizer(sim)
   player.run(sim_steps)
 
-  #recorder = SimulationRecorder(WORLD_WIDTH, WORLD_HEIGHT)
+  #recorder = SimulationRecorder(sim, WORLD_WIDTH, WORLD_HEIGHT)
   #recorder.record(sim_steps, "test.gif")
 
   #print(sim.steps())

@@ -162,7 +162,6 @@ class SimulationVisualizer:
     top = min(y1, y2)
     width = abs(x2 - x1)
     height = abs(y2 - y1)
-    print(world_width, world_height)
     world_rect = [
       left, top, width, height
     ]
