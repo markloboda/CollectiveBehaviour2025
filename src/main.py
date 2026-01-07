@@ -15,16 +15,18 @@ def main():
   WORLD_HEIGHT = 100
 
   obstacles = [
-    RectObstacle(10, 10, 40, 20, 1.0, 1.0)
+    RectObstacle(00, -2, 100, 0)
   ]
+
+  num_sheep = 14
 
   # For figure 6
   cfg = SimulationConfig(
-    field_size=(250, 250),
+    field_size=(100, 100),
     obstacles=obstacles,
 
-    num_sheep=14,
-    num_shepherds=2,
+    num_sheep=num_sheep,
+    num_shepherds=1,
 
     neighbors_num=10,  # K_atr
 
@@ -38,8 +40,15 @@ def main():
     w_rep=2.0,  # rho_a
     d_rep=2.0,  # rad_rep_s
 
+    # obstacles
+    sheep_obs_rep=10.0,
+    sheep_obs_range=3.0,
+
+    dog_obs_rep=1.5,
+    dog_obs_range=1.0,
+
     # dog repulsion
-    inertia_dog=0.5,  # h
+    inertia_dog=0.85,  # h
     w_dog=1.0,  # rho_d
     d_dog=12.0,  # rad_rep_dog
 
@@ -50,13 +59,13 @@ def main():
     goal_pos=(50, 50),
 
     # global dog-logic parameters
-    v_dog=1.4,  # v_dog
-    e=0.3,  # noise strength e
+    speed_dog=1.4,  # v_dog
+    noise_dog=0.3,  # noise strength e
 
     # flock cohesion threshold and collecting / driving offsets
-    f_n=2.0 * (14 ** (2 / 3)),  # rad_rep_s * no_shp^(2/3)
+    f_n=2.0 * (num_sheep ** (2 / 3)),  # rad_rep_s * no_shp^(2/3)
     pc=2.0,  # collecting offset (pc = rad_rep_s)
-    pd=2.0 * (14 ** 0.5),  # pd = rad_rep_s * sqrt(no_shp)
+    pd=2.0 * (num_sheep ** 0.5),  # pd = rad_rep_s * sqrt(no_shp)
 
     # sheep group splitting frequency
     group_split_frequency=0.1,

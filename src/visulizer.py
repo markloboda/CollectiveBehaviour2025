@@ -148,6 +148,20 @@ class SimulationVisualizer:
 
     return True
 
+  def draw_rect(self, p0, p1, color, border_width=0):
+    x1, y1 = self.camera.world_to_screen(p0, (self.screen_width, self.screen_height))
+    x2, y2 = self.camera.world_to_screen(p1, (self.screen_width, self.screen_height))
+
+    left = min(x1, x2)
+    top = min(y1, y2)
+    width = abs(x2 - x1)
+    height = abs(y2 - y1)
+    rect = [
+      left, top, width, height
+    ]
+    pygame.draw.rect(self.screen, color, rect, border_width)
+
+
   def draw_circle(self, pos: Tuple[float, float], color: Tuple[int, int, int], radius=1.0, width=0):
     screen_pos = self.camera.world_to_screen(pos, (self.screen_width, self.screen_height))
     pygame.draw.circle(self.screen, color, screen_pos, radius * self.camera.zoom, width)
@@ -156,17 +170,12 @@ class SimulationVisualizer:
     world_width = self.world_width
     world_height = self.world_height
 
-    x1, y1 = self.camera.world_to_screen((0, 0), (self.screen_width, self.screen_height))
-    x2, y2 = self.camera.world_to_screen((world_width, world_height), (self.screen_width, self.screen_height))
+    self.draw_rect((0, 0), (world_width, world_height), GRID_COLOR, 5)
 
-    left = min(x1, x2)
-    top = min(y1, y2)
-    width = abs(x2 - x1)
-    height = abs(y2 - y1)
-    world_rect = [
-      left, top, width, height
-    ]
-    pygame.draw.rect(self.screen, GRID_COLOR, pygame.Rect(world_rect), 5)
+    for obstacle in self.sim.cfg.obstacles:
+      p0 = obstacle.xmin, obstacle.ymin
+      p1 = obstacle.xmax, obstacle.ymax
+      self.draw_rect(p0, p1, GRID_COLOR, 0)
 
   def draw_frame(self, state: SimulationState):
     self.screen.fill(BACKGROUND_COLOR)
@@ -174,11 +183,11 @@ class SimulationVisualizer:
 
     self.draw_circle(self.goal_pos, GOAL_COLOR, 10, 2)
 
+    dog1_color = (200, 0, 0)
+    dog2_color = (0, 0, 200)
     # Get sheep groups
     if len(self.sim.shepherds) == 2 and self.sim.sheep:
       group1, group2 = self.sim.split_sheep_groups()
-      dog1_color = (200, 0, 0)
-      dog2_color = (0, 0, 200)
 
       # Draw sheep with their assigned dog colors
       for sheep in group1:

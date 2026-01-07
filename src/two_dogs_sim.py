@@ -36,8 +36,8 @@ def main():
     goal_pos=(50, 50),
 
     # global dog-logic parameters
-    v_dog=1.5,  # v_dog
-    e=0.3,  # noise strength e
+    speed_dog=1.5,  # v_dog
+    noise_dog=0.3,  # noise strength e
 
     # flock cohesion threshold and collecting / driving offsets
     f_n=2.0 * (14 ** (2 / 3)),  # rad_rep_s * no_shp^(2/3)

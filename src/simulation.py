@@ -29,6 +29,12 @@ class SimulationConfig:
   w_rep: float  # weight on interaction (rho_a)
   d_rep: float  # distance for social repulsion (rad_rep_s)
 
+  sheep_obs_rep: float
+  sheep_obs_range: float
+
+  dog_obs_rep: float
+  dog_obs_range: float
+
   # dog repulsion
   inertia_dog: float  # inertia of dog direction (h)
   w_dog: float  # weight on interaction (rho_d)
@@ -41,8 +47,8 @@ class SimulationConfig:
   goal_pos: Tuple[float, float] | None
 
   # “global” model parameters used in dog logic
-  v_dog: float  # dog speed (v_dog)
-  e: float  # noise strength for dog (e)
+  speed_dog: float  # dog speed (v_dog)
+  noise_dog: float  # noise strength for dog (e)
   # group cohesion threshold f_n and collecting/drive offsets pc, pd
   f_n: float  # cohesion threshold (f_n)
   pc: float  # collecting offset (pc)
@@ -141,21 +147,15 @@ class Simulation:
         assigned_sheep = sheep_groups[i] if i < len(sheep_groups) else []
         dog.update(
           assigned_sheep,
+          obstacles=self.cfg.obstacles,
           dt=dt,
-          speed_dog=self.cfg.v_dog,
-          rad_rep_s=self.cfg.d_rep,
-          f_n=self.cfg.f_n,
-          pc=self.cfg.pc,
-          pd=self.cfg.pd,
-          noise_strength=self.cfg.e,
-          goal_x=self.cfg.goal_pos[0],
-          goal_y=self.cfg.goal_pos[1],
+          cfg=self.cfg
         )
 
     for sheep in self.sheep:
       sheep.update_noise()
-      sheep.update_obstacles(self.cfg.obstacles)
-      sheep.move(dt)
+      sheep.update_obstacles(self.cfg.obstacles, self.cfg.sheep_obs_range, self.cfg.sheep_obs_rep)
+      sheep.move(dt, obstacles=self.cfg.obstacles)
 
     self._current_frame += 1
 

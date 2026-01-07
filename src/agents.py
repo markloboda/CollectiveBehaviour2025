@@ -2,6 +2,8 @@ import math
 import random
 from typing import List, Tuple
 
+from obstacle import RectObstacle
+
 
 class Agent:
   def __init__(self, x: float, y: float):
@@ -109,17 +111,18 @@ class Sheep(Agent):
   def update_noise(self):
     angle = random.uniform(0, 2 * math.pi)
     self.noise = (math.cos(angle), math.sin(angle))
-    self.noise = (random.uniform(0, 1), random.uniform(0, 1))
 
-  def update_obstacles(self, obstacles):
+  def update_obstacles(self, obstacles, rang, rep):
     fx, fy = 0.0, 0.0
     for obs in obstacles:
-      rx, ry = obs.repulsion(self.x, self.y)
-      fx += rx
+      rx, ry = obs.repulsion(self.x, self.y, rang, rep)
+      #rx, ry = obs.repulsion_tangent(self.x, self.y, self.vx / self.speed_const, self.vy / self.speed_const, rang, rep)
+      fx -= rx
       fy += ry
+    print(fx, fy)
     self.obstacle_repulsion = (fx, fy)
 
-  def move(self, dt, alpha=0.5, epsilon=0.1):
+  def move(self, dt, alpha=0.5, epsilon=0.1, obstacles=[]):
     # Previous direction unit vector
     dir_x, dir_y = self.direction
 
@@ -129,7 +132,8 @@ class Sheep(Agent):
             + self.social_alignment[0]
             + self.social_repulsion[0]
             + self.dog_repulsion[0]
-            + epsilon * (self.noise[0] - 0.5) * 2.0
+            + self.obstacle_repulsion[0]
+            + epsilon * self.noise[0]
     )
     uy = (
             alpha * dir_y
@@ -137,7 +141,8 @@ class Sheep(Agent):
             + self.social_alignment[1]
             + self.social_repulsion[1]
             + self.dog_repulsion[1]
-            + epsilon * (self.noise[1] - 0.5) * 2.0
+            + self.obstacle_repulsion[1]
+            + epsilon * self.noise[1]
     )
 
     norm = math.hypot(ux, uy)
@@ -151,6 +156,9 @@ class Sheep(Agent):
     # Move sheep
     self.x += self.vx * dt
     self.y += self.vy * dt
+
+    #for obstacle in obstacles:
+    #  self.x, self.y = obstacle.deflect(self.x, self.y)
 
 class Dog(Agent):
   def __init__(self, x: float, y: float):
@@ -176,17 +184,12 @@ class Dog(Agent):
 
   def update(self,
              sheep: List[Sheep],
+             obstacles: List[RectObstacle],
              dt: float,
-             speed_dog: float,     # v_dog in MATLAB
-             rad_rep_s: float,     # rad_rep_s in MATLAB
-             f_n: float,
-             pc: float,
-             pd: float,
-             noise_strength: float, # e in MATLAB
-             goal_x: float = 50,
-             goal_y: float = 50,
+             cfg
              ) -> None:
 
+    goal_x, goal_y = cfg.goal_pos
     if not sheep:
       return
     # distance from dog to each sheep (dist_rds)
@@ -200,7 +203,7 @@ class Dog(Agent):
     min_dist = min(dists)
 
     # force-slow branch: if any sheep within rad_rep_s
-    if min_dist < rad_rep_s:
+    if min_dist < cfg.d_rep:
       # use previous velocity direction (vel_d_t_1)
       norm_v = math.hypot(self.vx, self.vy)
       if norm_v > 0.0:
@@ -231,29 +234,36 @@ class Dog(Agent):
     max_dist = max(dist_gcm)
     max_idx = dist_gcm.index(max_dist)
 
+
+    obs_x, obs_y = 0.0, 0.0
+    for obs in obstacles:
+      rx, ry = obs.repulsion(self.x, self.y, cfg.dog_obs_range, cfg.dog_obs_rep)
+      obs_x += rx
+      obs_y += ry
+
     # collect or drive?
-    if max_dist > f_n:
+    if max_dist > cfg.f_n:
       # COLLECT: go behind farthest sheep relative to group centre
       rx, ry = r_gcm[max_idx]
       d_far = dist_gcm[max_idx]
 
       if d_far > 0.0:
         # rc = grp_centre + (dist_far + pc) * (r_gcm / dist_far)
-        d_behind = d_far + pc
+        d_behind = d_far + cfg.pc
         ux = rx / d_far
         uy = ry / d_far
         target_x = avg_x + d_behind * ux
         target_y = avg_y + d_behind * uy
       else:
         # degenerate case: farthest sheep at group centre -> fall back to drive-to-goal
-        to_goal_x = avg_x - goal_x
-        to_goal_y = avg_y - goal_y
+        to_goal_x = avg_x - cfg.goal_pos[0]
+        to_goal_y = avg_y - cfg.goal_pos[1]
         g2c_norm = math.hypot(to_goal_x, to_goal_y)
         if g2c_norm == 0.0:
           return
         ux = to_goal_x / g2c_norm
         uy = to_goal_y / g2c_norm
-        d_behind = g2c_norm + pd
+        d_behind = g2c_norm + cfg.pd
         target_x = goal_x + d_behind * ux
         target_y = goal_y + d_behind * uy
 
@@ -266,7 +276,7 @@ class Dog(Agent):
         return
       ux = to_goal_x / g2c_norm
       uy = to_goal_y / g2c_norm
-      d_behind = g2c_norm + pd
+      d_behind = g2c_norm + cfg.pd
       target_x = goal_x + d_behind * ux
       target_y = goal_y + d_behind * uy
 
@@ -285,8 +295,14 @@ class Dog(Agent):
     err_x = math.cos(theta_err)
     err_y = math.sin(theta_err)
 
-    ux = dir_x + noise_strength * err_x + self.dog_dog_repulsion[0]
-    uy = dir_y + noise_strength * err_y + self.dog_dog_repulsion[1]
+    ux = dir_x + cfg.noise_dog * err_x + self.dog_dog_repulsion[0]
+    uy = dir_y + cfg.noise_dog * err_y + self.dog_dog_repulsion[1]
+
+    # Obstacle "aware"
+    obs_steer_gain = 1.0
+    ux += obs_steer_gain * obs_x
+    uy += obs_steer_gain * obs_y
+
     norm2 = math.hypot(ux, uy)
     if norm2 == 0.0:
       return
@@ -295,10 +311,13 @@ class Dog(Agent):
     uy /= norm2
 
     # update velocity and position
-    self.vx = ux * speed_dog
-    self.vy = uy * speed_dog
+    self.vx = (ux * cfg.speed_dog * (1 - cfg.inertia_dog)) + self.vx * cfg.inertia_dog
+    self.vy = (uy * cfg.speed_dog * (1 - cfg.inertia_dog)) + self.vy * cfg.inertia_dog
     self.x += self.vx * dt
     self.y += self.vy * dt
+
+    for obs in obstacles:
+      self.x, self.y = obs.deflect(self.x, self.y)
 
 
 class AgentUtils:
