@@ -95,15 +95,16 @@ class Sheep(Agent):
           sum_dy += dy / dist
       self.social_repulsion = (-wRep * sum_dx / nRep, -wRep * sum_dy / nRep)
 
-  def update_repulsion(self, dog, wDog, dDog): #dDog = R_D in paper
-    dx = self.x - dog.x
-    dy = self.y - dog.y
-    dist = math.hypot(dx, dy)
-    print(dist, dDog)
-    if dist < dDog and dist > 0:
-      self.dog_repulsion = (wDog * dx / dist, wDog * dy / dist)
-    else:
-      self.dog_repulsion = (0.0, 0.0)
+  def update_repulsion(self, dogs, wDog, dDog): #dDog = R_D in paper
+    rep_x, rep_y = 0.0, 0.0
+    for dog in dogs:
+      dx = self.x - dog.x
+      dy = self.y - dog.y
+      dist = math.hypot(dx, dy)
+      if dist < dDog and dist > 0:
+        rep_x += wDog * dx / dist
+        rep_y += wDog * dy / dist
+    self.dog_repulsion = (rep_x, rep_y)
 
   def update_noise(self):
     angle = random.uniform(0, 2 * math.pi)
@@ -117,7 +118,6 @@ class Sheep(Agent):
       fx += rx
       fy += ry
     self.obstacle_repulsion = (fx, fy)
-
 
   def move(self, dt, alpha=0.5, epsilon=0.1):
     # Previous direction unit vector
@@ -155,6 +155,24 @@ class Sheep(Agent):
 class Dog(Agent):
   def __init__(self, x: float, y: float):
     super().__init__(x, y)
+    self.dog_dog_repulsion = (0.0, 0.0)
+
+  def update_dog_repulsion(self, other_dogs: List['Dog'], wDogDogRep: float, dDogDogRep: float):
+    """Update repulsion force from other dogs"""
+    rep_neighbors = [d for d in other_dogs if d != self and math.hypot(d.x - self.x, d.y - self.y) < dDogDogRep]
+    nRep = len(rep_neighbors)
+    if nRep == 0:
+      self.dog_dog_repulsion = (0.0, 0.0)
+    else:
+      sum_dx, sum_dy = 0.0, 0.0
+      for d in rep_neighbors:
+        dx = d.x - self.x
+        dy = d.y - self.y
+        dist = math.hypot(dx, dy)
+        if dist > 0:
+          sum_dx += dx / dist
+          sum_dy += dy / dist
+      self.dog_dog_repulsion = (-wDogDogRep * sum_dx / nRep, -wDogDogRep * sum_dy / nRep)
 
   def update(self,
              sheep: List[Sheep],
@@ -267,8 +285,8 @@ class Dog(Agent):
     err_x = math.cos(theta_err)
     err_y = math.sin(theta_err)
 
-    ux = dir_x + noise_strength * err_x
-    uy = dir_y + noise_strength * err_y
+    ux = dir_x + noise_strength * err_x + self.dog_dog_repulsion[0]
+    uy = dir_y + noise_strength * err_y + self.dog_dog_repulsion[1]
     norm2 = math.hypot(ux, uy)
     if norm2 == 0.0:
       return

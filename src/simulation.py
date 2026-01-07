@@ -34,6 +34,10 @@ class SimulationConfig:
   w_dog: float  # weight on interaction (rho_d)
   d_dog: float  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
 
+  # dog to dog repulsion
+  w_dog_dog: float  # weight on interaction between dogs
+  d_dog_dog: float  # distance for dog to dog repulsion
+
   goal_pos: Tuple[float, float] | None
 
   # “global” model parameters used in dog logic
@@ -106,7 +110,6 @@ class Simulation:
   def update(self, dt: float) -> None:
     for sheep in self.sheep:
       neighbors = [s for s in self.sheep if s != sheep]
-
       sheep.update_social(
         neighbors,
         wAtt=self.cfg.w_att,
@@ -116,16 +119,15 @@ class Simulation:
         nAli=self.cfg.n_ali,
         dRep=self.cfg.d_rep,
       )
-      # only use first dog for now
       if self.shepherds:
-        for dog in self.shepherds:
-          sheep.update_repulsion(dog, self.cfg.w_dog, self.cfg.d_dog)
+        sheep.update_repulsion(self.shepherds, self.cfg.w_dog, self.cfg.d_dog)
       else:
         sheep.dog_repulsion = (0.0, 0.0)
 
     # update dog (using "previous" sheep state)
     if self.shepherds:
       for dog in self.shepherds:
+        dog.update_dog_repulsion(self.shepherds, self.cfg.w_dog_dog, self.cfg.d_dog_dog)
         dog.update(
           self.sheep,
           dt=dt,
@@ -138,6 +140,7 @@ class Simulation:
           goal_x=self.cfg.goal_pos[0],
           goal_y=self.cfg.goal_pos[1],
         )
+
     for sheep in self.sheep:
       sheep.update_noise()
       sheep.update_obstacles(self.cfg.obstacles)

@@ -43,10 +43,14 @@ def main():
     w_dog=1.0,  # rho_d
     d_dog=12.0,  # rad_rep_dog
 
-    goal_pos=(80, 80),
+    # dog to dog repulsion
+    w_dog_dog=0.4,
+    d_dog_dog=6.0,
+
+    goal_pos=(50, 50),
 
     # global dog-logic parameters
-    v_dog=1.5,  # v_dog
+    v_dog=1.4,  # v_dog
     e=0.3,  # noise strength e
 
     # flock cohesion threshold and collecting / driving offsets

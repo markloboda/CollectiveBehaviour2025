@@ -66,8 +66,8 @@ class SimulationVisualizer:
 
       self.speed_slider = pygame_gui.elements.UIHorizontalSlider(
         relative_rect=pygame.Rect((120, self.screen_height - 35), (200, 30)),
-        start_value=1.0,
-        value_range=(0.1, 500.0),
+        start_value=250.0,
+        value_range=(1.0, 500.0),
         manager=self.ui_manager
       )
 
@@ -78,7 +78,7 @@ class SimulationVisualizer:
       )
 
     self.paused = False
-    self.simulation_speed = 1.0
+    self.simulation_speed = 300.0
     self.last_tick_time = time.time()
     self.tick_interval = 1.0  # seconds per tick
 
