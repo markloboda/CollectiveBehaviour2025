@@ -56,7 +56,7 @@ def main():
     w_dog_dog=0.1,
     d_dog_dog=4.0,
 
-    goal_pos=(50, 50),
+    goal_pos=(50, -10),
 
     # global dog-logic parameters
     speed_dog=1.4,  # v_dog

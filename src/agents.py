@@ -119,7 +119,6 @@ class Sheep(Agent):
       #rx, ry = obs.repulsion_tangent(self.x, self.y, self.vx / self.speed_const, self.vy / self.speed_const, rang, rep)
       fx -= rx
       fy += ry
-    print(fx, fy)
     self.obstacle_repulsion = (fx, fy)
 
   def move(self, dt, alpha=0.5, epsilon=0.1, obstacles=[]):
