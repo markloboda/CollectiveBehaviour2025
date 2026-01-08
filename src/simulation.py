@@ -29,6 +29,9 @@ class SimulationConfig:
   w_rep: float  # weight on interaction (rho_a)
   d_rep: float  # distance for social repulsion (rad_rep_s)
 
+  # sheep noise
+  w_noise: float  # noise strength for sheep (e)
+
   sheep_obs_rep: float
   sheep_obs_range: float
 
@@ -153,7 +156,7 @@ class Simulation:
         )
 
     for sheep in self.sheep:
-      sheep.update_noise()
+      sheep.update_noise(self.cfg.w_noise)
       sheep.update_obstacles(self.cfg.obstacles, self.cfg.sheep_obs_range, self.cfg.sheep_obs_rep)
       sheep.move(dt, obstacles=self.cfg.obstacles)
 

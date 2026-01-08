@@ -18,7 +18,7 @@ def main():
     RectObstacle(00, -2, 100, 0)
   ]
 
-  num_sheep = 14
+  num_sheep = 30
 
   # For figure 6
   cfg = SimulationConfig(
@@ -39,6 +39,9 @@ def main():
     # social repulsion
     w_rep=2.0,  # rho_a
     d_rep=2.0,  # rad_rep_s
+
+    # sheep noise
+    w_noise=0.2, # e
 
     # obstacles
     sheep_obs_rep=10.0,

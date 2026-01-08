@@ -124,49 +124,49 @@ class SimulationVisualizer:
 
   def handle_events(self):
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            return False
+      if event.type == pygame.QUIT:
+        return False
 
-        if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            if event.ui_element == self.pause_button:
-                self.paused = not self.paused
-                self.pause_button.set_text("Resume" if self.paused else "Pause")
+      if event.type == pygame_gui.UI_BUTTON_PRESSED:
+        if event.ui_element == self.pause_button:
+          self.paused = not self.paused
+          self.pause_button.set_text("Resume" if self.paused else "Pause")
 
-        if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-            if event.ui_element == self.force_dropdown:
-                self.selected_force = event.text if event.text != "None" else None
+      if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+        if event.ui_element == self.force_dropdown:
+          self.selected_force = event.text if event.text != "None" else None
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == pygame.BUTTON_LEFT:
-                self.dragging = True
-                self.last_mouse_pos = event.pos
+      if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == pygame.BUTTON_LEFT:
+          self.dragging = True
+          self.last_mouse_pos = event.pos
 
-                if pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    self.goal_pos = self.camera.screen_to_world(event.pos, (self.screen_width, self.screen_height))
-                    self.sim.cfg.goal_pos = self.goal_pos
-            elif event.button == pygame.BUTTON_WHEELUP:
-                self.camera.zoom *= 1.1
-            elif event.button == pygame.BUTTON_WHEELDOWN:
-                self.camera.zoom /= 1.1
+          if pygame.key.get_mods() & pygame.KMOD_CTRL:
+            self.goal_pos = self.camera.screen_to_world(event.pos, (self.screen_width, self.screen_height))
+            self.sim.cfg.goal_pos = self.goal_pos
+        elif event.button == pygame.BUTTON_WHEELUP:
+          self.camera.zoom *= 1.1
+        elif event.button == pygame.BUTTON_WHEELDOWN:
+          self.camera.zoom /= 1.1
 
-        if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                self.dragging = False
+      if event.type == pygame.MOUSEBUTTONUP:
+        if event.button == 1:
+          self.dragging = False
 
-        if event.type == pygame.MOUSEMOTION and self.dragging and not self.ui_manager.focused_set:
-            current_pos = event.pos
-            dx = (current_pos[0] - self.last_mouse_pos[0]) / self.camera.zoom
-            dy = (current_pos[1] - self.last_mouse_pos[1]) / self.camera.zoom
-            self.camera.x -= dx
-            self.camera.y -= dy
-            self.last_mouse_pos = current_pos
+      if event.type == pygame.MOUSEMOTION and self.dragging and not self.ui_manager.focused_set:
+        current_pos = event.pos
+        dx = (current_pos[0] - self.last_mouse_pos[0]) / self.camera.zoom
+        dy = (current_pos[1] - self.last_mouse_pos[1]) / self.camera.zoom
+        self.camera.x -= dx
+        self.camera.y -= dy
+        self.last_mouse_pos = current_pos
 
-        if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
-            if event.ui_element == self.speed_slider:
-                self.simulation_speed = event.value
-                self.speed_label.set_text(f"Speed: {self.simulation_speed:.1f}x")
+      if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
+        if event.ui_element == self.speed_slider:
+          self.simulation_speed = event.value
+          self.speed_label.set_text(f"Speed: {self.simulation_speed:.1f}x")
 
-        self.ui_manager.process_events(event)
+      self.ui_manager.process_events(event)
 
     return True
 
@@ -279,36 +279,41 @@ class SimulationVisualizer:
 
   def draw_sheep_forces(self, screen):
     if not self.selected_force or not self.sim.sheep:
-        return
+      return
 
     force_colors = {
-        "social_attraction": (255, 0, 0),
-        "social_alignment": (0, 255, 0),
-        "social_repulsion": (0, 0, 255),
-        "dog_repulsion": (255, 255, 0),
-        "obstacle_repulsion": (255, 0, 255),
-        "noise": (0, 255, 255),
+      "social_attraction": (255, 0, 0),
+      "social_alignment": (0, 255, 0),
+      "social_repulsion": (0, 0, 255),
+      "dog_repulsion": (255, 255, 0),
+      "obstacle_repulsion": (255, 0, 255),
+      "noise": (0, 255, 255),
     }
 
     color = force_colors.get(self.selected_force, (255, 255, 255))
 
     for sheep in self.sim.sheep:
-        if hasattr(sheep, self.selected_force):
-            force = getattr(sheep, self.selected_force)
-            force_x, force_y = force
+      if hasattr(sheep, self.selected_force):
+        force = getattr(sheep, self.selected_force)
+        force_x, force_y = force
 
-            if math.hypot(force_x, force_y) < 1e-3:
-                continue
+        if math.hypot(force_x, force_y) < 1e-3:
+          continue
 
-            scale_factor = 10.0
-            start_pos = (sheep.x, sheep.y)
-            end_pos = (sheep.x + force_x * scale_factor, sheep.y + force_y * scale_factor)
+        mag = math.hypot(force_x, force_y)
+        scale = min(20.0, 5.0 + 15.0 * mag)
 
-            start_screen = self.camera.world_to_screen(start_pos, (self.screen_width, self.screen_height))
-            end_screen = self.camera.world_to_screen(end_pos, (self.screen_width, self.screen_height))
+        start_pos = (sheep.x, sheep.y)
+        end_pos = (
+          sheep.x + force_x / (mag + 1e-6) * scale,
+          sheep.y + force_y / (mag + 1e-6) * scale
+        )
 
-            pygame.draw.line(screen, color, start_screen, end_screen, 2)
-            self._draw_arrowhead(screen, start_screen, end_screen, color)
+        start_screen = self.camera.world_to_screen(start_pos, (self.screen_width, self.screen_height))
+        end_screen = self.camera.world_to_screen(end_pos, (self.screen_width, self.screen_height))
+
+        pygame.draw.line(screen, color, start_screen, end_screen, 2)
+        self._draw_arrowhead(screen, start_screen, end_screen, color)
 
   def _draw_arrowhead(self, screen, start_pos, end_pos, color):
     start_x, start_y = start_pos

@@ -108,9 +108,9 @@ class Sheep(Agent):
         rep_y += wDog * dy / dist
     self.dog_repulsion = (rep_x, rep_y)
 
-  def update_noise(self):
+  def update_noise(self, wNoise):
     angle = random.uniform(0, 2 * math.pi)
-    self.noise = (math.cos(angle), math.sin(angle))
+    self.noise = (wNoise * math.cos(angle), wNoise * math.sin(angle))
 
   def update_obstacles(self, obstacles, rang, rep):
     fx, fy = 0.0, 0.0
