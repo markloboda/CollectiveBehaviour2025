@@ -121,7 +121,7 @@ class Sheep(Agent):
       fy += ry
     self.obstacle_repulsion = (fx, fy)
 
-  def move(self, dt, alpha=0.5, epsilon=0.1, obstacles=[]):
+  def move(self, dt, alpha=0.5, epsilon=0.1, inertia=0.0, obstacles=[]):
     # Previous direction unit vector
     dir_x, dir_y = self.direction
 
@@ -145,9 +145,12 @@ class Sheep(Agent):
     )
 
     norm = math.hypot(ux, uy)
+    ux /= norm
+    uy /= norm
     if norm > 0:
-      self.vx = ux / norm * self.speed_const
-      self.vy = uy / norm * self.speed_const
+      inertia = 0.5
+      self.vx = (1 - inertia) * (ux * self.speed_const) + (inertia * self.vx)
+      self.vy = (1 - inertia) * (uy * self.speed_const) + (inertia * self.vy)
     else:
       self.vx = 0.0
       self.vy = 0.0
@@ -236,7 +239,7 @@ class Dog(Agent):
 
     obs_x, obs_y = 0.0, 0.0
     for obs in obstacles:
-      rx, ry = obs.repulsion(self.x, self.y, cfg.dog_obs_range, cfg.dog_obs_rep)
+      rx, ry = obs.repulsion(self.x, self.y, cfg.dog_obs_range * 10, cfg.dog_obs_rep)
       obs_x += rx
       obs_y += ry
 
@@ -310,8 +313,8 @@ class Dog(Agent):
     uy /= norm2
 
     # update velocity and position
-    self.vx = (ux * cfg.speed_dog * (1 - cfg.inertia_dog)) + self.vx * cfg.inertia_dog
-    self.vy = (uy * cfg.speed_dog * (1 - cfg.inertia_dog)) + self.vy * cfg.inertia_dog
+    self.vx = (ux * cfg.speed_dog * (1 - cfg.dog_inertia)) + self.vx * cfg.dog_inertia
+    self.vy = (uy * cfg.speed_dog * (1 - cfg.dog_inertia)) + self.vy * cfg.dog_inertia
     self.x += self.vx * dt
     self.y += self.vy * dt
 

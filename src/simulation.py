@@ -29,6 +29,8 @@ class SimulationConfig:
   w_rep: float  # weight on interaction (rho_a)
   d_rep: float  # distance for social repulsion (rad_rep_s)
 
+  sheep_inertia: float
+
   # sheep noise
   w_noise: float  # noise strength for sheep (e)
 
@@ -39,7 +41,7 @@ class SimulationConfig:
   dog_obs_range: float
 
   # dog repulsion
-  inertia_dog: float  # inertia of dog direction (h)
+  dog_inertia: float  # inertia of dog direction (h)
   w_dog: float  # weight on interaction (rho_d)
   d_dog: float  # distance for dog repulsion (rad_rep_dog = pd + 1 with pd = 2)
 
@@ -158,7 +160,7 @@ class Simulation:
     for sheep in self.sheep:
       sheep.update_noise(self.cfg.w_noise)
       sheep.update_obstacles(self.cfg.obstacles, self.cfg.sheep_obs_range, self.cfg.sheep_obs_rep)
-      sheep.move(dt, obstacles=self.cfg.obstacles)
+      sheep.move(dt, inertia=self.cfg.sheep_inertia, obstacles=self.cfg.obstacles)
 
     self._current_frame += 1
 

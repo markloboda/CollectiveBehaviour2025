@@ -29,7 +29,7 @@ def main():
     d_rep=2.0,  # rad_rep_s
 
     # dog repulsion
-    inertia_dog=0.5,  # h
+    dog_inertia=0.5,  # h
     w_dog=1.0,  # rho_d
     d_dog=12.0,  # rad_rep_dog
 

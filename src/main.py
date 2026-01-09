@@ -18,7 +18,7 @@ def main():
     RectObstacle(00, -2, 100, 0)
   ]
 
-  num_sheep = 30
+  num_sheep = 14
 
   # For figure 6
   cfg = SimulationConfig(
@@ -40,6 +40,8 @@ def main():
     w_rep=2.0,  # rho_a
     d_rep=2.0,  # rad_rep_s
 
+    sheep_inertia=0.8,
+
     # sheep noise
     w_noise=0.2, # e
 
@@ -51,7 +53,7 @@ def main():
     dog_obs_range=1.0,
 
     # dog repulsion
-    inertia_dog=0.85,  # h
+    dog_inertia=0.85,  # h
     w_dog=1.0,  # rho_d
     d_dog=12.0,  # rad_rep_dog
 
@@ -59,7 +61,7 @@ def main():
     w_dog_dog=0.1,
     d_dog_dog=4.0,
 
-    goal_pos=(50, -10),
+    goal_pos=(50, 50),
 
     # global dog-logic parameters
     speed_dog=1.4,  # v_dog
