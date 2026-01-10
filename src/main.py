@@ -20,7 +20,6 @@ def main():
 
   num_sheep = 14
 
-  # For figure 6
   cfg = SimulationConfig(
     field_size=(100, 100),
     obstacles=obstacles,
@@ -29,6 +28,8 @@ def main():
     num_shepherds=1,
 
     neighbors_num=10,  # K_atr
+
+    sheep_sight_range=12.0,
 
     # social attraction / alignment
     w_att=1.5,  # c

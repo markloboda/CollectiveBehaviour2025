@@ -18,6 +18,7 @@ class SimulationConfig:
   num_sheep: int
   num_shepherds: int
 
+  sheep_sight_range: float
   neighbors_num: int  # number of neighbors for social interaction between sheep (k_atr)
   # social attraction
   w_att: float  # weight on interaction (c)
@@ -107,6 +108,7 @@ class Simulation:
         elongation=None,
         dog_offsets=None,
         dog_rear_distance=None,
+        avg_dist_to_target=None,
       )
 
       if self.collect_metrics:
@@ -119,6 +121,8 @@ class Simulation:
         state.elongation = self.calculate_group_elongation()
         state.dog_offsets = self.calculate_dog_offsets()
         state.dog_rear_distance = self.calculate_dog_rear_distance()
+        state.avg_dist_to_target = self.calculate_avg_distance_to_target()
+
 
       accum += dt
       self.update(dt)
@@ -127,7 +131,18 @@ class Simulation:
 
   def update(self, dt: float) -> None:
     for sheep in self.sheep:
-      neighbors = [s for s in self.sheep if s != sheep]
+      neighbors = []
+      for n in self.sheep:
+        if sheep == n:
+          continue
+        dx = sheep.x - n.x
+        dy = sheep.y - n.y
+
+        dst = (dx ** 2 + dy ** 2) ** 0.5
+        if dst >= self.cfg.sheep_sight_range:
+          continue
+        neighbors.append(n)
+
       sheep.update_social(
         neighbors,
         wAtt=self.cfg.w_att,
@@ -361,6 +376,19 @@ class Simulation:
 
     y_RD = y_min - y_D
     return y_RD
+  
+  def calculate_avg_distance_to_target(self) -> float | None:
+    if not self.sheep:
+      return None
+
+    gx, gy = self.cfg.goal_pos
+
+    avg_dx2 = sum((a.x - gx) ** 2 for a in self.sheep) / len(self.sheep)
+    avg_dy2 = sum((a.y - gy) ** 2 for a in self.sheep) / len(self.sheep)
+
+    return (avg_dx2 + avg_dy2 ) ** 0.5
+
+
 
   def calculate_barycenter_velocity(self) -> Tuple[float, float]:
     if not self.sheep:

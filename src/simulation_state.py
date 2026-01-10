@@ -25,4 +25,5 @@ class SimulationState:
   elongation: float | None
   dog_offsets: Tuple[float, float] | None
   dog_rear_distance: Tuple[float, float] | None
+  avg_dist_to_target: float | None
 

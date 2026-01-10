@@ -1,5 +1,5 @@
 import os
-from typing import Sequence, List, Tuple, Optional
+from typing import Sequence, List, Tuple, Optional, Dict
 import math
 import matplotlib.pyplot as plt
 
@@ -255,13 +255,77 @@ def plot_dog_rear_distance_hist(states: Sequence[SimulationState], out_path: str
     plt.title("Distribution of dog rear distance y_RD")
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(out_path, dpi=300)
+    plt.savefig(out_path, dpi=600)
     plt.close()
 
 
+def plot_multi_cohesion_time(states: Dict[str, Sequence[SimulationState]], out_path: str) -> None:
+    """
+    Plot C(t) over time and save to out_path.
+    """
+    plt.figure()
+
+    for label, state in states.items():
+        times = [s.time for s in state]
+        cohesion = [s.cohesion for s in state]
+        plt.plot(times, cohesion, lw=1.5, label=label)
+
+    plt.xlabel("Time")
+    plt.ylabel("Cohesion C(t)")
+    plt.title("Flock cohesion over time")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=600)
+    plt.close()
+
+def plot_multi_polarisation_time(states: Dict[str, Sequence[SimulationState]], out_path: str) -> None:
+    """
+    Plot P(t) over time and save to out_path.
+    """
+
+    plt.figure()
+
+    for label, state in states.items():
+        times = [s.time for s in state]
+        pol = [s.polarization for s in state]
+        plt.plot(times, pol, lw=1.5, label=label)
+
+    plt.xlabel("Time")
+    plt.ylabel("Polarisation P(t)")
+    plt.title("Polarization distribution")
+    plt.legend()
+    plt.ylim(0.0, 1.05)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=600)
+    plt.close()
+
+
+def plot_multi_distance_to_target(states: Dict[str, Sequence[SimulationState]], out_path: str) -> None:
+    """
+    Plot d_target(t) over time
+    """
+
+    plt.figure()
+
+    for label, state in states.items():
+        times = [s.time for s in state]
+        avg_dists = [s.avg_dist_to_target for s in state]
+
+        plt.plot(times, avg_dists, lw=1.5, label=label)
+    plt.xlabel("Time")
+    plt.ylabel("Distance to target")
+    plt.legend()
+    plt.title("Average distance to target over time")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=600)
+    plt.close()
+
 
 def plot_all_metrics(
-    states: Sequence[SimulationState],
+    states: Dict[str, Sequence[SimulationState]],
     results_dir: str = "results",
     prefix: str = ""
 ) -> None:
@@ -271,22 +335,7 @@ def plot_all_metrics(
     def path(name: str) -> str:
         return os.path.join(results_dir, f"{prefix}{name}.png")
 
-    # 1) Cohesion
-    plot_cohesion_time(states, path("cohesion_time"))
-    plot_cohesion_hist(states, path("cohesion_hist"))
+    plot_multi_cohesion_time(states, path("cohesion_time"))
+    plot_multi_polarisation_time(states, path("polarisation_time"))
+    plot_multi_distance_to_target(states, path("distance_to_target"))
 
-    # 2) Polarisation
-    plot_polarisation_time(states, path("polarisation_time"))
-    plot_polarisation_hist(states, path("polarisation_hist"))
-
-    # 3) Elongation
-    plot_elongation_time(states, path("elongation_time"))
-    plot_elongation_hist(states, path("elongation_hist"))
-
-    # 4) Dog offsets
-    plot_dog_offsets_time(states, path("dog_offsets_time"))
-    plot_dog_offsets_hist(states, path("dog_offsets_hist"))
-
-    # 5) Dog rear distance
-    plot_dog_rear_distance_time(states, path("dog_rear_distance_time"))
-    plot_dog_rear_distance_hist(states, path("dog_rear_distance_hist"))

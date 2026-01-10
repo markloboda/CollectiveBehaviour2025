@@ -51,7 +51,7 @@ class RectObstacle:
     t = (influence - d) / influence
     #strength = (1 - d / influence) * repulsion_weight
     strength = repulsion_weight * (t * t)
-    return (strength * ux, strength * uy)
+    return (-strength * ux, strength * uy)
 
 
 

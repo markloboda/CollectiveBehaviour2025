@@ -302,7 +302,7 @@ class Dog(Agent):
 
     # Obstacle "aware"
     obs_steer_gain = 1.0
-    ux += obs_steer_gain * obs_x
+    ux -= obs_steer_gain * obs_x
     uy += obs_steer_gain * obs_y
 
     norm2 = math.hypot(ux, uy)
