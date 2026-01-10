@@ -18,7 +18,7 @@ def main():
     RectObstacle(00, -2, 100, 0)
   ]
 
-  num_sheep = 14
+  num_sheep = 120
 
   # For figure 6
   cfg = SimulationConfig(
@@ -26,14 +26,14 @@ def main():
     obstacles=obstacles,
 
     num_sheep=num_sheep,
-    num_shepherds=1,
+    num_shepherds=2,
 
     neighbors_num=10,  # K_atr
 
     # social attraction / alignment
-    w_att=1.5,  # c
+    w_att=0.8,  # c
     n_att=4,  # k_atr
-    w_ali=1.3,  # alg_str
+    w_ali=0.8,  # alg_str
     n_ali=1,  # k_alg
 
     # social repulsion
@@ -76,7 +76,7 @@ def main():
     group_split_frequency=0.1,
   )
 
-  sim = Simulation(cfg, seed=10)
+  sim = Simulation(cfg, seed=5)
   sim_steps = sim.steps(steps=3000)
   # print(list(sim_steps()))
   # plot_all_metrics(list(sim_steps)[1:])

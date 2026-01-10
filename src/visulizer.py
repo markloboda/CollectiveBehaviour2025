@@ -70,7 +70,7 @@ class SimulationVisualizer:
           "dog_repulsion",
           "obstacle_repulsion",
           "noise",
-          "Splitting Lines",
+          "splitting_lines",
         ],
         starting_option="None",
         manager=self.ui_manager,
@@ -205,14 +205,33 @@ class SimulationVisualizer:
 
     self.draw_circle(self.goal_pos, GOAL_COLOR, 10, 2)
 
-    for sheep in state.sheep:
+    # Define dog colors
+    dog1_color = (200, 0, 0)    # Red
+    dog2_color = (0, 0, 200)    # Blue
+
+    # Color sheep based on assigned dog groups
+    if len(self.sim.shepherds) == 2 and self.sim.sheep:
+      group1, group2 = self.sim.split_sheep_groups()
+
+      # Draw sheep with their assigned dog colors
+      for sheep in group1:
+        self.draw_circle((sheep.x, sheep.y), dog1_color)
+
+      for sheep in group2:
+        self.draw_circle((sheep.x, sheep.y), dog2_color)
+    else:
+      # Default coloring for sheep when not split
+      for sheep in state.sheep:
         self.draw_circle((sheep.x, sheep.y), SHEEP_COLOR)
 
-    for dog in state.dogs:
-        self.draw_circle((dog.x, dog.y), DOG_COLOR, radius=2.0)
+    # Draw dogs with distinct colors
+    dog_colors = [dog1_color, dog2_color]
+    for i, dog in enumerate(state.dogs):
+      color = dog_colors[i] if i < len(dog_colors) else DOG_COLOR
+      self.draw_circle((dog.x, dog.y), color, radius=2.0)
 
     # Handle selected mode
-    if self.selected_force == "Splitting Lines":
+    if self.selected_force == "splitting_lines":
         self.draw_splitting_lines(self.screen)
     else:
         self.draw_sheep_forces(self.screen)
@@ -264,18 +283,58 @@ class SimulationVisualizer:
     mid_y = (dog1.y + dog2.y) / 2
 
     # Convert to screen coordinates using camera
-    mid_screen = self.camera.world_to_screen((mid_x, mid_y), (self.screen_width, self.screen_height))
-    barycenter_screen = self.camera.world_to_screen(barycenter, (self.screen_width, self.screen_height))
     dog1_screen = self.camera.world_to_screen((dog1.x, dog1.y), (self.screen_width, self.screen_height))
     dog2_screen = self.camera.world_to_screen((dog2.x, dog2.y), (self.screen_width, self.screen_height))
 
     # Draw line between dogs
-    pygame.draw.line(screen, (160, 160, 160), dog1_screen, dog2_screen, 1)
-    # Draw line from mid-point to barycenter
-    pygame.draw.line(screen, (160, 160, 160), mid_screen, barycenter_screen, 1)
+    pygame.draw.line(screen, (100, 100, 100), dog1_screen, dog2_screen, 1)
+
+    # Draw extended line from midpoint through barycenter
+    dir_x = barycenter[0] - mid_x
+    dir_y = barycenter[1] - mid_y
+    norm = math.hypot(dir_x, dir_y)
+
+    if norm > 0:
+      # Normalize direction
+      dir_x /= norm
+      dir_y /= norm
+
+      # Extend the midpoint-barycenter line across the visible area
+      line_length = max(self.world_width, self.world_height) * 2
+
+      # Line from midpoint through barycenter
+      mb_start_x = mid_x - dir_x * line_length
+      mb_start_y = mid_y - dir_y * line_length
+      mb_end_x = mid_x + dir_x * line_length
+      mb_end_y = mid_y + dir_y * line_length
+
+      mb_start_screen = self.camera.world_to_screen((mb_start_x, mb_start_y), (self.screen_width, self.screen_height))
+      mb_end_screen = self.camera.world_to_screen((mb_end_x, mb_end_y), (self.screen_width, self.screen_height))
+
+      # Draw extended midpoint-barycenter line
+      pygame.draw.line(screen, (255, 50, 255), mb_start_screen, mb_end_screen, 1)
+
+      # Perpendicular vector for splitting line
+      perp_x = -dir_y
+      perp_y = dir_x
+
+      # Extend the perpendicular visible area
+      split_start_x = mid_x - perp_x * line_length
+      split_start_y = mid_y - perp_y * line_length
+      split_end_x = mid_x + perp_x * line_length
+      split_end_y = mid_y + perp_y * line_length
+
+      split_start_screen = self.camera.world_to_screen((split_start_x, split_start_y), (self.screen_width, self.screen_height))
+      split_end_screen = self.camera.world_to_screen((split_end_x, split_end_y), (self.screen_width, self.screen_height))
+
+      # Draw the perpendicular line
+      pygame.draw.line(screen, (100, 100, 100), split_start_screen, split_end_screen, 1)
+
+    # Draw midpoint
+    self.draw_circle((mid_x, mid_y), (100, 100, 100), 1)
 
     # Draw barycenter
-    self.draw_circle(barycenter, (160, 160, 160), 5 / self.camera.zoom)
+    self.draw_circle(barycenter, (100, 100, 100), 1)
 
   def draw_sheep_forces(self, screen):
     if not self.selected_force or not self.sim.sheep:
@@ -312,7 +371,7 @@ class SimulationVisualizer:
         start_screen = self.camera.world_to_screen(start_pos, (self.screen_width, self.screen_height))
         end_screen = self.camera.world_to_screen(end_pos, (self.screen_width, self.screen_height))
 
-        pygame.draw.line(screen, color, start_screen, end_screen, 2)
+        pygame.draw.line(screen, color, start_screen, end_screen, 1)
         self._draw_arrowhead(screen, start_screen, end_screen, color)
 
   def _draw_arrowhead(self, screen, start_pos, end_pos, color):
@@ -341,8 +400,8 @@ class SimulationVisualizer:
     right_x = end_x - arrow_length * (dx * cos_angle + dy * sin_angle)
     right_y = end_y - arrow_length * (dy * cos_angle - dx * sin_angle)
 
-    pygame.draw.line(screen, color, end_pos, (left_x, left_y), 2)
-    pygame.draw.line(screen, color, end_pos, (right_x, right_y), 2)
+    pygame.draw.line(screen, color, end_pos, (left_x, left_y), 1)
+    pygame.draw.line(screen, color, end_pos, (right_x, right_y), 1)
 
 
 class SimulationRecorder(SimulationVisualizer):
