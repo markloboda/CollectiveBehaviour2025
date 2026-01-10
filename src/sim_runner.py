@@ -106,7 +106,7 @@ def original_one_dog_vs_two(cfg):
   plot_all_metrics(inp, "results", "original_model_")
 
 def plot_time_to_goal(cfg):
-  sheep_counts = sorted([14, 24, 48])
+  sheep_counts = sorted([14, 24, 48, 60, 100])
   time_1dog = []
   time_2dogs = []
 
@@ -141,11 +141,11 @@ def plot_time_to_goal(cfg):
     for run in range(N_RUNS):
       cfg.num_shepherds = 1
       sim = Simulation(cfg, seed=SEED + run)
-      time_run_1dog = (time_to_cohesion(sim.steps(STEPS)) / N_RUNS)
+      time_run_1dog += (time_to_cohesion(sim.steps(STEPS)) / N_RUNS)
 
       cfg.num_shepherds = 2
       sim = Simulation(cfg, seed=SEED + run)
-      time_run_2dogs = (time_to_cohesion(sim.steps(STEPS)) / N_RUNS)
+      time_run_2dogs += (time_to_cohesion(sim.steps(STEPS)) / N_RUNS)
 
     time_1dog.append(time_run_1dog)
     time_2dogs.append(time_run_2dogs)
@@ -169,7 +169,7 @@ def plot_time_to_goal(cfg):
 
 """
 
-cfg.num_sheep = 80
+cfg.num_sheep = 14
 sim = Simulation(cfg, seed=SEED)
 sim_steps = sim.steps(steps=3000)
 player = SimulationVisualizer(sim)
