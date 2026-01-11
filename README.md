@@ -28,22 +28,22 @@ This repository contains a Python reimplementation and extension of the agent-ba
 
 Using single dog herding.
 
-[gate_1dog_120sheep.mp4](videos/gate_1dog_120sheep.mp4)
+[gate_1dog_120sheep.gif](videos/gate_1dog_120sheep.gif)
 
 Using dual dog herding.
 
-[gate_2dog_120sheep.mp4](videos/gate_2dog_120sheep.mp4)
+[gate_2dog_120sheep.gif](videos/gate_2dog_120sheep.gif)
 
 ### Herding flock within an enclosed area
 
 We can see how a dog will collect smaller flocks and lead them to form larger flocks.
 
-[merging_flocks.mp4](videos/merging_flocks.mp4)
+[merging_flocks.gif](videos/merging_flocks.gif)
 
-We can also see that under some circumstances a single dog can have trouble lelading whole flock and they under
+We can also see that under some circumstances a single dog can have trouble leading whole flock and they under
 such conditions will disperse.
 
-[dispersing_flocks.mp4](videos/dispersing_flocks.mp4)
+[dispersing_flocks.gif](videos/dispersing_flocks.gif)
 
 ## How to run?
 
