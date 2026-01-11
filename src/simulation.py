@@ -67,18 +67,26 @@ class SimulationConfig:
   pd: float  # driving offset (pd)
 
   # sheep group splitting frequency
-  group_split_frequency: float = 0.2  # fraction of frames to update split (0.2 = every 5 frames)
+  group_split_frequency: float  # fraction of frames to update split (0.2 = every 5 frames)
 
 
 
 class Simulation:
-  def __init__(self, simCfg: SimulationConfig, collect_metrics=True, seed: int = 42):
+  def __init__(self, simCfg: SimulationConfig, collect_metrics=True, seed: int = 42, spawn_rect = (-50, -50, 50, 50)):
     self.collect_metrics = collect_metrics
     random.seed(seed)
 
     self.cfg = simCfg
-    self.sheep = [Sheep(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in range(simCfg.num_sheep)]
-    self.shepherds = [Dog(random.uniform(0, simCfg.field_size[0]), random.uniform(0, simCfg.field_size[1])) for _ in
+
+    # Spawn sheep outside the field on top
+    self.sheep = []
+    for _ in range(simCfg.num_sheep):
+      spawn_x = random.uniform(spawn_rect[0], spawn_rect[2])
+      spawn_y = random.uniform(spawn_rect[1], spawn_rect[3])
+      self.sheep.append(Sheep(spawn_x, spawn_y))
+
+    # Keep dogs spawning randomly on top of the field
+    self.shepherds = [Dog(spawn_rect[0] - 10, spawn_rect[1] - 10) for _ in
                       range(simCfg.num_shepherds)]
 
     self._cached_sheep_groups = None

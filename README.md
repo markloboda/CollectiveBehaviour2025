@@ -28,7 +28,7 @@ Create a virtual environment (recommended), then install dependencies:
 
 ```cmd
 pip install -r requirements.txt
-python ./src/main.py
+python ./src/demo01.py
 ```
 
 ### Requirements

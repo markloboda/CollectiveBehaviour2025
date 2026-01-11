@@ -43,7 +43,7 @@ class Camera:
 class SimulationVisualizer:
   CELL_SIZE = 3
 
-  def __init__(self, sim = None, world_width: int = 100, world_height: int = 100, headless=False):
+  def __init__(self, sim = None, world_width: int = 300, world_height: int = 300, headless=False):
     pygame.init()
     self.world_width = world_width
     self.world_height = world_height
@@ -105,8 +105,8 @@ class SimulationVisualizer:
 
     self.camera = Camera()
     # Center camera on world and fit to screen
-    self.camera.x = world_width / 2
-    self.camera.y = world_height / 2
+    self.camera.x = 0
+    self.camera.y = 0
     ui_margin = 50
     zoom_x = self.screen_width / world_width
     zoom_y = (self.screen_height - ui_margin) / world_height

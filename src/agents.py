@@ -121,7 +121,7 @@ class Sheep(Agent):
       fy += ry
     self.obstacle_repulsion = (fx, fy)
 
-  def move(self, dt, alpha=0.5, epsilon=0.1, inertia=0.0, obstacles=[], dogs=[], idle_range=15.0, idle_social_scale=0.05, idle_noise_scale=0.2, idle_alpha=0.1):
+  def move(self, dt, alpha=0.5, epsilon=0.1, inertia=0.0, obstacles=[], dogs=[], idle_range=15.0, idle_social_scale=0.05, idle_noise_scale=0.2):
     # Check if any dog is within idle range
     dog_nearby = False
     if dogs:
