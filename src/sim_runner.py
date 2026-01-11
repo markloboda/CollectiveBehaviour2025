@@ -36,7 +36,11 @@ cfg = SimulationConfig(
 
   neighbors_num=10,  # K_atr
 
-  sheep_sight_range=4.0,
+  sheep_sight_range=15.0,
+
+  sheep_idle_range=12.0,
+  idle_social_scale = 0.30,
+  idle_noise_scale = 0.2,
 
   # social attraction / alignment
   w_att=1.5,  # c
@@ -81,7 +85,7 @@ cfg = SimulationConfig(
   pd=2.0 * (num_sheep ** 0.5),  # pd = rad_rep_s * sqrt(no_shp)
 
   # sheep group splitting frequency
-  group_split_frequency=0.1,
+  group_split_frequency=0.05,
 )
 
 SEED = 42
@@ -175,7 +179,7 @@ sim_steps = sim.steps(steps=3000)
 player = SimulationVisualizer(sim)
 player.run(sim_steps)
 
-#original_one_dog_vs_two(cfg)
-#plot_time_to_goal(cfg)
+# original_one_dog_vs_two(cfg)
+# plot_time_to_goal(cfg)
 
 

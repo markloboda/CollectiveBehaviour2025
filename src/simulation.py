@@ -19,6 +19,12 @@ class SimulationConfig:
   num_shepherds: int
 
   sheep_sight_range: float
+
+  # idle state
+  sheep_idle_range: float   # Range to check for dog presence
+  idle_social_scale: float
+  idle_noise_scale: float
+
   neighbors_num: int  # number of neighbors for social interaction between sheep (k_atr)
   # social attraction
   w_att: float  # weight on interaction (c)
@@ -175,7 +181,15 @@ class Simulation:
     for sheep in self.sheep:
       sheep.update_noise(self.cfg.w_noise)
       sheep.update_obstacles(self.cfg.obstacles, self.cfg.sheep_obs_range, self.cfg.sheep_obs_rep)
-      sheep.move(dt, inertia=self.cfg.sheep_inertia, obstacles=self.cfg.obstacles)
+      sheep.move(
+        dt,
+        inertia=self.cfg.sheep_inertia,
+        obstacles=self.cfg.obstacles,
+        dogs=self.shepherds,
+        idle_range=self.cfg.sheep_idle_range,
+        idle_social_scale=self.cfg.idle_social_scale,
+        idle_noise_scale=self.cfg.idle_noise_scale,
+      )
 
     self._current_frame += 1
 
@@ -376,7 +390,7 @@ class Simulation:
 
     y_RD = y_min - y_D
     return y_RD
-  
+
   def calculate_avg_distance_to_target(self) -> float | None:
     if not self.sheep:
       return None
@@ -417,25 +431,38 @@ class Simulation:
   def split_sheep_groups(self) -> Tuple[List[Sheep], List[Sheep]]:
     dog1, dog2 = self.shepherds[0], self.shepherds[1]
     barycenter = self.calculate_barycenter()
+
     # Middle point between the two dogs
     mid_x = (dog1.x + dog2.x) / 2
     mid_y = (dog1.y + dog2.y) / 2
+
     # Direction vector from middle point to barycenter
     dir_x = barycenter[0] - mid_x
     dir_y = barycenter[1] - mid_y
     norm = math.hypot(dir_x, dir_y)
     if norm == 0:
-      # If middle point equals barycenter, split
+      # If middle point equals barycenter, split randomly
       return self.sheep[:len(self.sheep)//2], self.sheep[len(self.sheep)//2:]
 
     dir_x /= norm
     dir_y /= norm
+
     # Perpendicular vector to the splitting line
     perp_x = -dir_y
     perp_y = dir_x
 
-    group1 = []
-    group2 = []
+    # Check which side dog1 is on to orient the line correctly
+    dog1_vec_x = dog1.x - mid_x
+    dog1_vec_y = dog1.y - mid_y
+    dog1_projection = dog1_vec_x * perp_x + dog1_vec_y * perp_y
+
+    # If dog1 is on the negative side, flip the perpendicular vector
+    if dog1_projection < 0:
+      perp_x = -perp_x
+      perp_y = -perp_y
+
+    group1 = []  # Dog1's group
+    group2 = []  # Dog2's group
 
     for sheep in self.sheep:
       # Vector from middle point to sheep

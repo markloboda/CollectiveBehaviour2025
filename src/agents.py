@@ -121,33 +121,83 @@ class Sheep(Agent):
       fy += ry
     self.obstacle_repulsion = (fx, fy)
 
-  def move(self, dt, alpha=0.5, epsilon=0.1, inertia=0.0, obstacles=[]):
-    # Previous direction unit vector
+  def move(self, dt, alpha=0.5, epsilon=0.1, inertia=0.0, obstacles=[], dogs=[], idle_range=15.0, idle_social_scale=0.05, idle_noise_scale=0.2, idle_alpha=0.1):
+    # Check if any dog is within idle range
+    dog_nearby = False
+    if dogs:
+      for dog in dogs:
+        distance_to_dog = math.hypot(self.x - dog.x, self.y - dog.y)
+        if distance_to_dog < idle_range:
+          dog_nearby = True
+          break
+
+    if not dog_nearby:
+      # Idle behavior - reduced movement when no dog nearby
+      dir_x, dir_y = self.direction
+
+      ux = (
+        alpha * dir_x
+        + self.social_attraction[0] * idle_social_scale
+        + self.social_alignment[0] * idle_social_scale
+        + self.social_repulsion[0] * idle_social_scale
+        + self.obstacle_repulsion[0]
+        + epsilon * self.noise[0] * idle_noise_scale
+      )
+      uy = (
+        alpha * dir_y
+        + self.social_attraction[1] * idle_social_scale
+        + self.social_alignment[1] * idle_social_scale
+        + self.social_repulsion[1] * idle_social_scale
+        + self.obstacle_repulsion[1]
+        + epsilon * self.noise[1] * idle_noise_scale
+      )
+
+      norm = math.hypot(ux, uy)
+      if norm > 0:
+        ux /= norm
+        uy /= norm
+        idle_speed = 0.15
+        idle_inertia = 0.8
+        self.vx = (1 - idle_inertia) * (ux * idle_speed) + (idle_inertia * self.vx)
+        self.vy = (1 - idle_inertia) * (uy * idle_speed) + (idle_inertia * self.vy)
+      else:
+        self.vx *= 0.95
+        self.vy *= 0.95
+
+      if math.hypot(self.vx, self.vy) < 0.01:
+        self.vx = 0.0
+        self.vy = 0.0
+
+      self.x += self.vx * dt
+      self.y += self.vy * dt
+      return
+
+    # Active behavior - normal movement when dog nearby
     dir_x, dir_y = self.direction
 
     ux = (
-            alpha * dir_x
-            + self.social_attraction[0]
-            + self.social_alignment[0]
-            + self.social_repulsion[0]
-            + self.dog_repulsion[0]
-            + self.obstacle_repulsion[0]
-            + epsilon * self.noise[0]
+      alpha * dir_x
+      + self.social_attraction[0]
+      + self.social_alignment[0]
+      + self.social_repulsion[0]
+      + self.dog_repulsion[0]
+      + self.obstacle_repulsion[0]
+      + epsilon * self.noise[0]
     )
     uy = (
-            alpha * dir_y
-            + self.social_attraction[1]
-            + self.social_alignment[1]
-            + self.social_repulsion[1]
-            + self.dog_repulsion[1]
-            + self.obstacle_repulsion[1]
-            + epsilon * self.noise[1]
+      alpha * dir_y
+      + self.social_attraction[1]
+      + self.social_alignment[1]
+      + self.social_repulsion[1]
+      + self.dog_repulsion[1]
+      + self.obstacle_repulsion[1]
+      + epsilon * self.noise[1]
     )
 
     norm = math.hypot(ux, uy)
-    ux /= norm
-    uy /= norm
     if norm > 0:
+      ux /= norm
+      uy /= norm
       inertia = 0.5
       self.vx = (1 - inertia) * (ux * self.speed_const) + (inertia * self.vx)
       self.vy = (1 - inertia) * (uy * self.speed_const) + (inertia * self.vy)
@@ -155,12 +205,8 @@ class Sheep(Agent):
       self.vx = 0.0
       self.vy = 0.0
 
-    # Move sheep
     self.x += self.vx * dt
     self.y += self.vy * dt
-
-    #for obstacle in obstacles:
-    #  self.x, self.y = obstacle.deflect(self.x, self.y)
 
 class Dog(Agent):
   def __init__(self, x: float, y: float):
