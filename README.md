@@ -5,24 +5,30 @@ Group members:
 - Mark Loboda [markloboda](https://github.com/markloboda)
 - Klemen Plestenjak [klemenpl](https://github.com/klemenpl)
 
+
+## Topic: Simulation of the collective behaviour of flocking sheep to a herding dog
+For our project on Simulation of a collective behaviour of flocking sheep to a herding dog, we plan to implement the method described in the paper [Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)](https://doi.org/10.1038/s42003-024-07245-8) and expand on the implementation.
+
+This repository contains a Python reimplementation and extension of the agent-based herding model introduced in *Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)* by Jadhav et al. (2024). The goal of the project is to reproduce the original model’s collective dynamics and extend it with interactive visualization, explicit target setting, two-dog herding, and static environmental obstacles. The implementation successfully reproduces the qualitative behaviour reported in the paper and explores how simple multi-dog coordination strategies scale with flock size.
+
+## Project scope and achieved goals
+- Reimplementation of the original MATLAB herding model in Python  
+- Real-time visualization of sheep–dog dynamics  
+- Support for explicit herding targets  
+- Extension to two-dog herding via flock splitting  
+- Static obstacle avoidance for sheep and dogs  
+- Quantitative comparison of one-dog vs two-dog herding performance  
+
+
 ## How to run?
+
+Create a virtual environment (recommended), then install dependencies:
+
 ```cmd
 pip install -r requirements.txt
 python ./src/main.py
 ```
 
-## Topic: Simulation of the collective behaviour of flocking sheep to a herding dog
-For our project on Simulation of a collective behaviour of flocking sheep to a herding dog, we plan to implement the method described in the paper [Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)](https://doi.org/10.1038/s42003-024-07245-8) and expand on the implementation.
-The paper provides a linked GitHub repository with a MATLAB implementation of the model. We will reimplement this method in Python and add visualization to better understand and reproduce the collective dynamics between the sheep and the herding dog. After successfully replicating the results, we will expand the model by testing alternative herding strategies, including driving (pushing the flock from behind), collecting (gathering dispersed sheep before driving), and flanking (using lateral motion to guide direction). We will also introduce environmental obstacles to study how spatial constraints affect group cohesion and efficiency.
-
-## Milestones:
-- First report - 16.11.2025
-  - Review of the base existing implementation and other implementations
-  - Python implementation of the MATLAB model
-  - Basic visualization
-- Second report - 7.12.2025
-  - Implementation of obstacles
-  - Dog obstacle avoidance when herding
-- Third report - 11.1.2026
-  - Research and implementation of different herding strategies and flocking behaviours
-  - Testing and analysis of each strategy’s efficiency
+### Requirements
+- Python 3.10 or newer
+- Tested on Linux and Windows
