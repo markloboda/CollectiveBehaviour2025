@@ -342,7 +342,7 @@ class SimulationVisualizer:
 
     force_colors = {
       "social_attraction": (255, 0, 0),
-      "social_alignment": (0, 255, 0),
+      "social_alignment": (100, 200, 100),
       "social_repulsion": (0, 0, 255),
       "dog_repulsion": (255, 255, 0),
       "obstacle_repulsion": (255, 0, 255),
