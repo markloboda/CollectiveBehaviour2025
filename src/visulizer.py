@@ -192,7 +192,7 @@ class SimulationVisualizer:
     world_width = self.world_width
     world_height = self.world_height
 
-    self.draw_rect((0, 0), (world_width, world_height), GRID_COLOR, 5)
+    #self.draw_rect((0, 0), (world_width, world_height), GRID_COLOR, 5)
 
     for obstacle in self.sim.cfg.obstacles:
       p0 = obstacle.xmin, obstacle.ymin

@@ -32,11 +32,11 @@ cfg = SimulationConfig(
   obstacles=obstacles,
 
   num_sheep=num_sheep,
-  num_shepherds=1,
+  num_shepherds=2,
 
   neighbors_num=10,  # K_atr
 
-  sheep_sight_range=12.0,
+  sheep_sight_range=4.0,
 
   # social attraction / alignment
   w_att=1.5,  # c
@@ -167,15 +167,15 @@ def plot_time_to_goal(cfg):
   plt.tight_layout()
   plt.show()
 
-"""
+#"""
 
-cfg.num_sheep = 14
+cfg.num_sheep = 80
 sim = Simulation(cfg, seed=SEED)
 sim_steps = sim.steps(steps=3000)
 player = SimulationVisualizer(sim)
 player.run(sim_steps)
-"""
-original_one_dog_vs_two(cfg)
-plot_time_to_goal(cfg)
+
+#original_one_dog_vs_two(cfg)
+#plot_time_to_goal(cfg)
 
 
