@@ -28,7 +28,7 @@ Create a virtual environment (recommended), then install dependencies:
 
 ```cmd
 pip install -r requirements.txt
-python ./src/demo01.py
+python ./src/demo_gate.py or./src/demo_confined_herding.py
 ```
 
 ### Requirements

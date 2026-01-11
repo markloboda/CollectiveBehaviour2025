@@ -16,13 +16,10 @@ w, h = 100, 100
 
 
 obstacles = [
-
-
-  RectObstacle(-10, -10, w + 10, 0), # top
-  RectObstacle(w + 10, -10, w + 20, h + 10), # right
-  RectObstacle(-20, h + 10, w + 20, h + 20), # bottom
-  RectObstacle(-10, -10, -20, h + 10), # lef
-
+  RectObstacle(-w//2-10, -h//2-10, w//2+10, -h//2), # top
+  RectObstacle(-w//2-10, h//2, w//2+10, h//2+10),   # bottom
+  RectObstacle(-w//2-10, -h//2-10, -w//2, h//2+10), # left
+  RectObstacle(w//2, -h//2-10, w//2+10, h//2+10),   # right
 ]
 
 cfg = SimulationConfig(
@@ -71,7 +68,7 @@ cfg = SimulationConfig(
   w_dog_dog=0.5,
   d_dog_dog=4.0,
 
-  goal_pos=(w // 2, h // 2),
+  goal_pos=(0, 0),
 
   # global dog-logic parameters
   speed_dog=1.5,  # v_dog

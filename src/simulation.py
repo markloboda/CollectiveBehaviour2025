@@ -81,12 +81,12 @@ class Simulation:
     # Spawn sheep outside the field on top
     self.sheep = []
     for _ in range(simCfg.num_sheep):
-      spawn_x = random.uniform(spawn_rect[0], spawn_rect[2])
-      spawn_y = random.uniform(spawn_rect[1], spawn_rect[3])
+      spawn_x = random.uniform(spawn_rect[0] + 10, spawn_rect[2])
+      spawn_y = random.uniform(spawn_rect[1] + 10, spawn_rect[3])
       self.sheep.append(Sheep(spawn_x, spawn_y))
 
     # Keep dogs spawning randomly on top of the field
-    self.shepherds = [Dog(spawn_rect[0] - 10, spawn_rect[1] - 10) for _ in
+    self.shepherds = [Dog(spawn_rect[0], spawn_rect[1]) for _ in
                       range(simCfg.num_shepherds)]
 
     self._cached_sheep_groups = None
