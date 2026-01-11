@@ -22,6 +22,29 @@ This repository contains a Python reimplementation and extension of the agent-ba
 - Runners, and plotters for easier testing
 
 
+## Demo
+
+### Herding flock towards an enclosed area (gate)
+
+Using single dog herding.
+
+[gate_1dog_120sheep.mp4](videos/gate_1dog_120sheep.mp4)
+
+Using dual dog herding.
+
+[gate_2dog_120sheep.mp4](videos/gate_2dog_120sheep.mp4)
+
+### Herding flock within an enclosed area
+
+We can see how a dog will collect smaller flocks and lead them to form larger flocks.
+
+[merging_flocks.mp4](videos/merging_flocks.mp4)
+
+We can also see that under some circumstances a single dog can have trouble lelading whole flock and they under
+such conditions will disperse.
+
+[dispersing_flocks.mp4](videos/dispersing_flocks.mp4)
+
 ## How to run?
 
 Create a virtual environment (recommended), then install dependencies:
